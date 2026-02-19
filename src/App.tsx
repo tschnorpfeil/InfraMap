@@ -11,7 +11,7 @@ function AppHeader() {
   return (
     <header className="app-header">
       <Link to="/" className="app-header__logo">
-        📋 <span>Brückenzeugnis</span>
+        🌉 <span>Brückenzeugnis</span>
       </Link>
       <nav className="app-header__nav">
         <Link
@@ -30,16 +30,30 @@ function AppHeader() {
   );
 }
 
+import { BridgeMap } from './components/BridgeMap';
+
 function App() {
   return (
     <HashRouter>
       <DataProvider>
-        <AppHeader />
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/landkreis/:slug" element={<LandkreisPage />} />
-          <Route path="/rankings" element={<RankingsPage />} />
-        </Routes>
+        <div className="app-layout">
+          {/* Background Map Layer */}
+          <div className="app-layout__map">
+            <BridgeMap className="global-map" />
+          </div>
+
+          {/* Foreground UI Layer */}
+          <div className="app-layout__ui">
+            <AppHeader />
+            <div className="app-layout__content">
+              <Routes>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/landkreis/:slug" element={<LandkreisPage />} />
+                <Route path="/rankings" element={<RankingsPage />} />
+              </Routes>
+            </div>
+          </div>
+        </div>
       </DataProvider>
     </HashRouter>
   );

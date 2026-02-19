@@ -22,6 +22,31 @@ export function LandkreisPage() {
         }
     }, [match]);
 
+    // Fly to bounds when bridges load
+    useEffect(() => {
+        if (bridges && bridges.length > 0) {
+            let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+            for (const b of bridges) {
+                if (b.lng < minLng) minLng = b.lng;
+                if (b.lng > maxLng) maxLng = b.lng;
+                if (b.lat < minLat) minLat = b.lat;
+                if (b.lat > maxLat) maxLat = b.lat;
+            }
+            if (minLng !== Infinity) {
+                window.dispatchEvent(new CustomEvent('mapFlyToBounds', {
+                    detail: { bounds: [[minLng, minLat], [maxLng, maxLat]] }
+                }));
+            }
+        }
+    }, [bridges]);
+
+    // Reset map when leaving Landkreis
+    useEffect(() => {
+        return () => {
+            window.dispatchEvent(new CustomEvent('mapReset'));
+        };
+    }, []);
+
     if (lkLoading) {
         return (
             <div className="page page--loading">
@@ -42,7 +67,7 @@ export function LandkreisPage() {
     }
 
     return (
-        <div className="page page--landkreis">
+        <div className="page page--landkreis page--overlay overlay-sidebar">
             <div className="landkreis-page__nav">
                 <Link to="/" className="back-link">← Karte</Link>
                 <Link to="/rankings" className="back-link">🏆 Rankings</Link>

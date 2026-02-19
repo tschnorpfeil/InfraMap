@@ -8,9 +8,9 @@ export function RankingsPage() {
     }, []);
 
     return (
-        <div className="page page--rankings">
+        <div className="page page--rankings page--overlay overlay-modal">
             <div className="rankings-page__header">
-                <Link to="/" className="back-link">← Karte</Link>
+                <Link to="/" className="back-link">← Zurück zur Karte</Link>
                 <h1 className="rankings-page__title">
                     📊 Ranking
                 </h1>

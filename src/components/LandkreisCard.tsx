@@ -67,6 +67,9 @@ export function LandkreisCard({ stats }: LandkreisCardProps) {
             </div>
 
             <div className="landkreis-card__share">
+                <div style={{ fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '12px', textAlign: 'center' }}>
+                    Quelle: BASt · Datenstand 2025
+                </div>
                 <ShareButtons title="Brückenzeugnis" text={shareText} url={shareUrl} />
             </div>
         </div>

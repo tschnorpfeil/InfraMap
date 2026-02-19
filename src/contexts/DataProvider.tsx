@@ -163,8 +163,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 const newFeatures = bridgesToFeatures(rows);
                 allFeatures.push(...newFeatures);
 
+                hasMore = rows.length === PAGE_SIZE;
+
                 if (!cancelled) {
-                    // New object reference triggers React update, but reuse same features array
                     setGeojson({
                         type: 'FeatureCollection',
                         features: allFeatures,
@@ -172,11 +173,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
                     setBridgeProgress({
                         loaded: allFeatures.length,
                         estimatedTotal: ESTIMATED_TOTAL,
-                        done: rows.length < PAGE_SIZE,
+                        done: !hasMore,
                     });
                 }
 
-                hasMore = rows.length === PAGE_SIZE;
                 from += PAGE_SIZE;
             }
 

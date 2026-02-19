@@ -79,6 +79,38 @@ export function BridgeMap({
         };
     }, []);
 
+    // ── Custom Event Listeners for Overlay Routing ──
+    useEffect(() => {
+        const handleFlyToBounds = (e: Event) => {
+            const customEvent = e as CustomEvent<{ bounds: [[number, number], [number, number]]; padding?: number }>;
+            if (mapRef.current && customEvent.detail?.bounds) {
+                const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                mapRef.current.fitBounds(customEvent.detail.bounds, {
+                    padding: customEvent.detail.padding ?? (isTouch ? 20 : 50),
+                    duration: 1500, // Ms for smooth fly
+                });
+            }
+        };
+
+        const handleMapReset = () => {
+            if (mapRef.current) {
+                const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                mapRef.current.fitBounds(GERMANY_BOUNDS, {
+                    padding: isTouch ? 0 : 20,
+                    duration: 1500,
+                });
+            }
+        };
+
+        window.addEventListener('mapFlyToBounds', handleFlyToBounds);
+        window.addEventListener('mapReset', handleMapReset);
+
+        return () => {
+            window.removeEventListener('mapFlyToBounds', handleFlyToBounds);
+            window.removeEventListener('mapReset', handleMapReset);
+        };
+    }, [mapReady]);
+
 
 
     // Set up layers once when map is ready
