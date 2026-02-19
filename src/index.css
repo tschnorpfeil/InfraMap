@@ -1061,7 +1061,9 @@ a:hover {
   }
 
   .hero-kpi__note-hint {
-    display: none;
+    display: block;
+    font-size: 0.48rem;
+    margin-top: 1px;
   }
 
   /* Search compact */
