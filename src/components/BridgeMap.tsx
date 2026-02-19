@@ -70,43 +70,121 @@ export function BridgeMap({
             data: EMPTY_GEOJSON,
         });
 
-        // Heatmap layer
+        // ── Grade-segmented heatmaps ──
+        // Each grade range gets its own heatmap layer in the correct note color.
+        // Rendered bottom→top: green (good) → orange (warn) → red (critical).
+        // Density within each layer = concentration of bridges in that grade range.
+
+        // 1) Green glow — good bridges (Note < 2.0)
         m.addLayer({
-            id: 'bridges-heat',
+            id: 'bridges-heat-good',
             type: 'heatmap',
             source: 'bridges',
-            maxzoom: 9,
+            maxzoom: 10,
+            filter: ['<', ['get', 'zustandsnote'], 2.0],
             paint: {
-                'heatmap-weight': [
-                    'interpolate', ['linear'],
-                    ['get', 'zustandsnote'],
-                    1.0, 0.05, 2.0, 0.2, 2.5, 0.5, 3.0, 0.85, 4.0, 1,
-                ],
+                'heatmap-weight': 0.5,
                 'heatmap-intensity': [
                     'interpolate', ['linear'], ['zoom'],
-                    4, 0.35, 6, 0.7, 9, 1.4,
+                    4, 0.25, 7, 0.7, 9, 1.0,
                 ],
                 'heatmap-color': [
                     'interpolate', ['linear'], ['heatmap-density'],
                     0, 'rgba(0,0,0,0)',
-                    0.1, 'rgba(255,235,59,0.3)',
-                    0.25, 'rgba(255,152,0,0.45)',
-                    0.45, 'rgba(249,115,22,0.6)',
-                    0.65, 'rgba(239,68,68,0.7)',
-                    1, 'rgba(183,28,28,0.85)',
+                    0.2, 'rgba(34,197,94,0.12)',
+                    0.5, 'rgba(34,197,94,0.25)',
+                    0.8, 'rgba(74,222,128,0.35)',
+                    1, 'rgba(74,222,128,0.45)',
                 ],
                 'heatmap-radius': [
                     'interpolate', ['linear'], ['zoom'],
-                    4, 2, 6, 6, 8, 14, 9, 20,
+                    4, 4, 7, 12, 9, 20,
                 ],
                 'heatmap-opacity': [
                     'interpolate', ['linear'], ['zoom'],
-                    7, 0.9, 9, 0,
+                    8, 0.7, 10, 0,
                 ],
             },
         });
 
-        // Circle layer
+        // 2) Orange glow — moderate bridges (2.0 ≤ Note < 3.0)
+        m.addLayer({
+            id: 'bridges-heat-warn',
+            type: 'heatmap',
+            source: 'bridges',
+            maxzoom: 10,
+            filter: ['all',
+                ['>=', ['get', 'zustandsnote'], 2.0],
+                ['<', ['get', 'zustandsnote'], 3.0],
+            ],
+            paint: {
+                'heatmap-weight': [
+                    'interpolate', ['linear'],
+                    ['get', 'zustandsnote'],
+                    2.0, 0.5, 2.5, 0.7, 3.0, 1.0,
+                ],
+                'heatmap-intensity': [
+                    'interpolate', ['linear'], ['zoom'],
+                    4, 0.35, 7, 0.85, 9, 1.3,
+                ],
+                'heatmap-color': [
+                    'interpolate', ['linear'], ['heatmap-density'],
+                    0, 'rgba(0,0,0,0)',
+                    0.15, 'rgba(234,179,8,0.12)',
+                    0.35, 'rgba(249,115,22,0.25)',
+                    0.6, 'rgba(249,115,22,0.40)',
+                    0.85, 'rgba(249,115,22,0.50)',
+                    1, 'rgba(234,88,12,0.60)',
+                ],
+                'heatmap-radius': [
+                    'interpolate', ['linear'], ['zoom'],
+                    4, 5, 7, 14, 9, 22,
+                ],
+                'heatmap-opacity': [
+                    'interpolate', ['linear'], ['zoom'],
+                    8, 0.8, 10, 0,
+                ],
+            },
+        });
+
+        // 3) Red glow — critical bridges (Note ≥ 3.0)
+        m.addLayer({
+            id: 'bridges-heat-crit',
+            type: 'heatmap',
+            source: 'bridges',
+            maxzoom: 10,
+            filter: ['>=', ['get', 'zustandsnote'], 3.0],
+            paint: {
+                'heatmap-weight': [
+                    'interpolate', ['linear'],
+                    ['get', 'zustandsnote'],
+                    3.0, 0.5, 3.5, 0.8, 4.0, 1.0,
+                ],
+                'heatmap-intensity': [
+                    'interpolate', ['linear'], ['zoom'],
+                    4, 0.5, 7, 1.1, 9, 1.8,
+                ],
+                'heatmap-color': [
+                    'interpolate', ['linear'], ['heatmap-density'],
+                    0, 'rgba(0,0,0,0)',
+                    0.1, 'rgba(239,68,68,0.18)',
+                    0.3, 'rgba(239,68,68,0.35)',
+                    0.55, 'rgba(220,38,38,0.50)',
+                    0.8, 'rgba(183,28,28,0.65)',
+                    1, 'rgba(153,27,27,0.80)',
+                ],
+                'heatmap-radius': [
+                    'interpolate', ['linear'], ['zoom'],
+                    4, 6, 7, 18, 9, 28,
+                ],
+                'heatmap-opacity': [
+                    'interpolate', ['linear'], ['zoom'],
+                    8, 0.9, 10, 0,
+                ],
+            },
+        });
+
+        // Circle layer — individual bridges, note-colored (zoom 7+)
         m.addLayer({
             id: 'bridges-circle',
             type: 'circle',
@@ -124,10 +202,13 @@ export function BridgeMap({
                     2.5, '#f97316', 3.0, '#ef4444', 3.5, '#dc2626', 4.0, '#991b1b',
                 ],
                 'circle-stroke-color': '#000',
-                'circle-stroke-width': 1,
+                'circle-stroke-width': [
+                    'interpolate', ['linear'], ['zoom'],
+                    7, 0, 10, 0.8, 14, 1,
+                ],
                 'circle-opacity': [
                     'interpolate', ['linear'], ['zoom'],
-                    7, 0, 8, 0.8,
+                    7, 0, 9, 0.6, 10, 0.85,
                 ],
             },
         });
