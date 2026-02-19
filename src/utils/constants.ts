@@ -10,8 +10,8 @@ export const SONDERVERMOEGEN_BRUECKEN_FREIGEGEBEN = 1_100_000_000;
 export const GERMANY_CENTER: [number, number] = [10.4515, 51.1657];
 export const GERMANY_ZOOM = 5.5;
 export const GERMANY_BOUNDS: [[number, number], [number, number]] = [
-    [5.87, 47.27],
-    [15.04, 55.06],
+    [5.4, 46.8],   // SW: wider than actual border
+    [15.5, 55.5],   // NE: wider than actual border
 ];
 
 export const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json';
