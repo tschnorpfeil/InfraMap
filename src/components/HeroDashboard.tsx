@@ -13,6 +13,8 @@ export function HeroDashboard() {
     const inputRef = useRef<HTMLInputElement>(null);
     const navigate = useNavigate();
 
+    const avgAge = stats ? new Date().getFullYear() - stats.avgBaujahr : 0;
+
     // Filter Landkreise by search term
     const suggestions = useMemo(() => {
         if (!landkreise || search.trim().length < 2) return [];
@@ -49,7 +51,6 @@ export function HeroDashboard() {
         if (!showDropdown || suggestions.length === 0) {
             if (e.key === 'Enter') {
                 e.preventDefault();
-                // If there's a search term but no suggestions visible, show them
                 if (search.trim().length >= 2) setShowDropdown(true);
             }
             return;
@@ -81,39 +82,66 @@ export function HeroDashboard() {
     return (
         <div className="hero-overlay">
             <div className="hero-overlay__card">
+                {/* ── Header ── */}
                 <div className="hero-overlay__header">
-                    <h1 className="hero-overlay__title">🚨 Infrastruktur-Alarm</h1>
-                    <p className="hero-overlay__datenstand">
-                        Datenstand: September 2025 · BASt
-                    </p>
+                    <h1 className="hero-overlay__title">Infrastruktur-Alarm</h1>
+                    <span className="hero-overlay__badge">LIVE-DATEN</span>
                 </div>
+                <p className="hero-overlay__datenstand">
+                    Quelle: BASt · Stand September 2025
+                </p>
 
-                <div className="hero-overlay__stats">
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">
+                {/* ── KPI Grid: 2×2 ── */}
+                <div className="hero-kpi-grid">
+                    <div className="hero-kpi">
+                        <span className="hero-kpi__value">
                             {stats ? <StatCounter end={stats.totalBridges} /> : '—'}
                         </span>
-                        <span className="hero-stat__label">Brücken</span>
+                        <span className="hero-kpi__label">Brücken erfasst</span>
                     </div>
-                    <div className="hero-stat hero-stat--critical">
-                        <span className="hero-stat__value">
+
+                    <div className="hero-kpi hero-kpi--accent">
+                        <span className="hero-kpi__value">
+                            {stats ? <StatCounter end={stats.avgNote} decimals={1} /> : '—'}
+                        </span>
+                        <span className="hero-kpi__label">∅ Zustandsnote</span>
+                    </div>
+
+                    <div className="hero-kpi hero-kpi--alarm">
+                        <span className="hero-kpi__value">
                             {stats ? <StatCounter end={stats.criticalCount} /> : '—'}
                         </span>
-                        <span className="hero-stat__label">
-                            kritisch (Note ≥ 3,0)
-                            {stats && <span className="hero-stat__pct"> · {stats.criticalPercent}%</span>}
+                        <span className="hero-kpi__label">
+                            kritisch <span className="hero-kpi__note-hint">Note ≥ 3,0</span>
                         </span>
+                        {/* Critical % bar */}
+                        {stats && (
+                            <div className="hero-kpi__bar-wrap">
+                                <div className="hero-kpi__bar">
+                                    <div
+                                        className="hero-kpi__bar-fill"
+                                        style={{ width: `${stats.criticalPercent}%` }}
+                                    />
+                                </div>
+                                <span className="hero-kpi__bar-label">{stats.criticalPercent}%</span>
+                            </div>
+                        )}
                     </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">
-                            ∅ {stats ? <StatCounter end={new Date().getFullYear() - stats.avgBaujahr} suffix=" J." /> : '—'}
+
+                    <div className="hero-kpi">
+                        <span className="hero-kpi__value">
+                            {stats ? <StatCounter end={avgAge} suffix=" J." /> : '—'}
                         </span>
-                        <span className="hero-stat__label">Alter</span>
+                        <span className="hero-kpi__label">∅ Alter</span>
                     </div>
                 </div>
 
+                {/* ── Search ── */}
                 <div className="hero-overlay__search-wrapper" ref={dropdownRef}>
                     <div className="hero-overlay__search">
+                        <svg className="hero-overlay__search-icon" viewBox="0 0 20 20" fill="currentColor" width="16" height="16">
+                            <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+                        </svg>
                         <input
                             ref={inputRef}
                             type="text"
@@ -121,20 +149,10 @@ export function HeroDashboard() {
                             onChange={(e) => handleInputChange(e.target.value)}
                             onKeyDown={handleKeyDown}
                             onFocus={() => { if (search.trim().length >= 2) setShowDropdown(true); }}
-                            placeholder="Landkreis suchen..."
+                            placeholder="Landkreis suchen…"
                             className="hero-overlay__input"
                             autoComplete="off"
                         />
-                        <button
-                            type="button"
-                            className="hero-overlay__btn"
-                            onClick={() => {
-                                const first = suggestions[0];
-                                if (first) selectLandkreis(first.slug);
-                            }}
-                        >
-                            🔍
-                        </button>
                     </div>
 
                     {showDropdown && suggestions.length > 0 && (
