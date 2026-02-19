@@ -36,7 +36,7 @@ export function LandkreisCard({ stats }: LandkreisCardProps) {
                 <div className="landkreis-card__stat landkreis-card__stat--critical">
                     <span className="landkreis-card__stat-value">{stats.kritisch_count}</span>
                     <span className="landkreis-card__stat-label">
-                        Kritisch ({stats.kritisch_prozent}%)
+                        Kritisch · Note ≥ 3,0 ({stats.kritisch_prozent}%)
                     </span>
                 </div>
                 <div className="landkreis-card__stat">

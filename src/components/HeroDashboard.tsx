@@ -100,8 +100,8 @@ export function HeroDashboard() {
                             {stats ? <StatCounter end={stats.criticalCount} /> : '—'}
                         </span>
                         <span className="hero-stat__label">
-                            kritisch
-                            {stats && <span className="hero-stat__pct"> ({stats.criticalPercent}%)</span>}
+                            kritisch (Note ≥ 3,0)
+                            {stats && <span className="hero-stat__pct"> · {stats.criticalPercent}%</span>}
                         </span>
                     </div>
                     <div className="hero-stat">
