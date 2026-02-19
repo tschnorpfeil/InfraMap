@@ -151,7 +151,6 @@ a:hover {
 .page--home {
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .page--loading,
@@ -174,12 +173,12 @@ a:hover {
   height: calc(100vh - 48px);
   height: calc(100dvh - 48px);
   min-height: 400px;
-  touch-action: none;
 }
 
 .map-hero .bridge-map-container {
   position: absolute;
   inset: 0;
+  touch-action: none;
 }
 
 .map-hero .bridge-map {
@@ -999,11 +998,13 @@ a:hover {
 
   /* ── KPI docked bottom bar ── */
   .hero-overlay {
+    position: fixed;
     top: auto;
     bottom: 0;
     left: 0;
     right: 0;
     padding: 0;
+    z-index: 50;
   }
 
   .hero-overlay__card {
