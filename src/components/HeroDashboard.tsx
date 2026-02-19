@@ -2,17 +2,11 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatCounter } from './StatCounter';
 import { useGlobalStats } from '../hooks/useData';
-import { SONDERVERMOEGEN_TOTAL, SONDERVERMOEGEN_BRUECKEN_FREIGEGEBEN } from '../utils/constants';
-import { slugify } from '../utils/grading';
 
 export function HeroDashboard() {
     const stats = useGlobalStats();
     const [plz, setPlz] = useState('');
     const navigate = useNavigate();
-
-    const sondervermoegen_percent = Math.round(
-        (SONDERVERMOEGEN_BRUECKEN_FREIGEGEBEN / SONDERVERMOEGEN_TOTAL) * 1000
-    ) / 10;
 
     function handleSearch(e: React.FormEvent) {
         e.preventDefault();
@@ -28,6 +22,9 @@ export function HeroDashboard() {
                 <h1 className="hero-dashboard__title">Infrastruktur-Alarm</h1>
                 <p className="hero-dashboard__subtitle">
                     Zustand deutscher Brücken — datenbasiert, transparent, alarmierend
+                </p>
+                <p className="hero-dashboard__datenstand">
+                    Datenstand: September 2025 · Quelle: BASt (Bundesanstalt für Straßenwesen)
                 </p>
             </div>
 
@@ -80,14 +77,8 @@ export function HeroDashboard() {
                     <div className="stat-card__label">
                         Infrastrukturpaket beschlossen
                     </div>
-                    <div className="stat-card__bar">
-                        <div
-                            className="stat-card__bar-fill"
-                            style={{ width: `${sondervermoegen_percent}%` }}
-                        />
-                    </div>
                     <div className="stat-card__sublabel">
-                        Davon für Brücken freigegeben: {sondervermoegen_percent}%
+                        Davon 100 Mrd € für Verkehr vorgesehen
                     </div>
                 </div>
             </div>
@@ -105,12 +96,6 @@ export function HeroDashboard() {
                         🔍 Suchen
                     </button>
                 </form>
-                <button
-                    onClick={() => navigate('/rankings')}
-                    className="hero-btn hero-btn--rankings"
-                >
-                    🏆 Schandmauer — Die schlimmsten Landkreise
-                </button>
             </div>
         </div>
     );
