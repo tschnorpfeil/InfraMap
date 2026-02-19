@@ -1,0 +1,821 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap');
+
+/* ============================================
+   DESIGN SYSTEM — Dark Alarm Theme
+   ============================================ */
+
+:root {
+  --bg-primary: #050505;
+  --bg-secondary: #0a0a0a;
+  --bg-card: #111111;
+  --bg-card-hover: #1a1a1a;
+  --border: #222222;
+  --border-light: #333333;
+
+  --text-primary: #f5f5f5;
+  --text-secondary: #a3a3a3;
+  --text-muted: #666666;
+
+  --alarm-red: #ff2d2d;
+  --alarm-red-glow: rgba(255, 45, 45, 0.25);
+  --alarm-orange: #ff8c00;
+  --grade-green: #22c55e;
+  --grade-yellow: #eab308;
+  --grade-orange: #f97316;
+  --grade-red: #ef4444;
+  --grade-dark-red: #dc2626;
+
+  --accent-blue: #3b82f6;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.5);
+  --shadow-glow-red: 0 0 30px rgba(255, 45, 45, 0.15);
+}
+
+/* ============================================
+   RESET & BASE
+   ============================================ */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+a {
+  color: var(--accent-blue);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+/* ============================================
+   PAGE LAYOUTS
+   ============================================ */
+
+.page {
+  min-height: 100vh;
+}
+
+.page--home {
+  display: flex;
+  flex-direction: column;
+}
+
+.page--loading,
+.page--not-found {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  gap: 16px;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   HERO DASHBOARD
+   ============================================ */
+
+.hero-dashboard {
+  padding: 32px 24px 24px;
+  background: linear-gradient(180deg, #0a0000 0%, var(--bg-primary) 100%);
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-dashboard__alarm {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.alarm-icon {
+  font-size: 40px;
+  animation: pulse-alarm 2s ease-in-out infinite;
+}
+
+@keyframes pulse-alarm {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+.hero-dashboard__title {
+  font-size: 2.2rem;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  color: var(--alarm-red);
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+.hero-dashboard__subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  margin-top: 6px;
+}
+
+.hero-dashboard__stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  max-width: 1000px;
+  margin: 0 auto 24px;
+}
+
+/* ============================================
+   STAT CARDS
+   ============================================ */
+
+.stat-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  transition: border-color 0.2s;
+}
+
+.stat-card:hover {
+  border-color: var(--border-light);
+}
+
+.stat-card--critical {
+  border-color: rgba(255, 45, 45, 0.3);
+  box-shadow: var(--shadow-glow-red);
+}
+
+.stat-card__value {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.stat-card__value--alarm {
+  color: var(--alarm-red);
+}
+
+.stat-card__label {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 6px;
+}
+
+.stat-card__percent {
+  color: var(--alarm-red);
+  margin-left: 4px;
+}
+
+.stat-card__bar {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-top: 12px;
+  overflow: hidden;
+}
+
+.stat-card__bar-fill {
+  height: 100%;
+  background: var(--alarm-orange);
+  border-radius: 3px;
+  transition: width 1s ease;
+}
+
+.stat-card__sublabel {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.stat-counter {
+  font-family: var(--font-mono);
+}
+
+.loading-pulse {
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ============================================
+   HERO ACTIONS
+   ============================================ */
+
+.hero-dashboard__actions {
+  display: flex;
+  gap: 12px;
+  max-width: 700px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.hero-search {
+  display: flex;
+  flex: 1;
+  min-width: 240px;
+}
+
+.hero-search__input {
+  flex: 1;
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.hero-search__input:focus {
+  border-color: var(--alarm-red);
+}
+
+.hero-search__input::placeholder {
+  color: var(--text-muted);
+}
+
+.hero-search__btn {
+  padding: 12px 20px;
+  background: var(--alarm-red);
+  color: white;
+  border: none;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.hero-search__btn:hover {
+  background: #e02020;
+}
+
+.hero-btn {
+  padding: 12px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.hero-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--alarm-red);
+}
+
+/* ============================================
+   MAP
+   ============================================ */
+
+.map-section {
+  flex: 1;
+  position: relative;
+  min-height: 500px;
+}
+
+.bridge-map-container {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.home-map {
+  position: absolute;
+  inset: 0;
+}
+
+.bridge-map {
+  width: 100%;
+  height: 100%;
+  min-height: 500px;
+}
+
+.bridge-map__loading {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-secondary);
+  z-index: 10;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 16px 24px;
+  border-radius: var(--radius-md);
+}
+
+/* MapLibre popup overrides */
+.maplibregl-popup-content {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 16px !important;
+  box-shadow: var(--shadow-card) !important;
+}
+
+.maplibregl-popup-tip {
+  border-top-color: var(--bg-card) !important;
+}
+
+.maplibregl-popup-close-button {
+  color: var(--text-secondary) !important;
+  font-size: 18px !important;
+}
+
+.bridge-popup__name {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.bridge-popup__note {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.bridge-popup__details {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   GRADE LABEL
+   ============================================ */
+
+.grade-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-mono);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.grade-label--sm {
+  font-size: 0.8rem;
+  padding: 2px 8px;
+}
+.grade-label--md {
+  font-size: 1rem;
+}
+.grade-label--lg {
+  font-size: 1.4rem;
+  padding: 8px 16px;
+}
+.grade-label--xl {
+  font-size: 2.4rem;
+  padding: 16px 32px;
+  border-width: 2px;
+}
+
+.grade-label__text {
+  font-family: var(--font-sans);
+  font-weight: 600;
+}
+
+/* ============================================
+   LANDKREIS CARD (ZEUGNIS)
+   ============================================ */
+
+.landkreis-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 480px;
+  box-shadow: var(--shadow-card);
+}
+
+.landkreis-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.landkreis-card__icon {
+  font-size: 2rem;
+}
+
+.landkreis-card__title {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.landkreis-card__name {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin-top: 2px;
+}
+
+.landkreis-card__bundesland {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.landkreis-card__grade-section {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.landkreis-card__stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.landkreis-card__stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.landkreis-card__stat-value {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.landkreis-card__stat--critical .landkreis-card__stat-value {
+  color: var(--alarm-red);
+}
+
+.landkreis-card__stat-label {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+.landkreis-card__bar-track {
+  display: flex;
+  height: 10px;
+  border-radius: 5px;
+  overflow: hidden;
+  background: var(--border);
+}
+
+.landkreis-card__bar-fill--ok {
+  background: var(--grade-green);
+}
+
+.landkreis-card__bar-fill--critical {
+  background: var(--alarm-red);
+}
+
+.landkreis-card__bar-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.landkreis-card__share {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+/* ============================================
+   SHARE BUTTONS
+   ============================================ */
+
+.share-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.share-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+
+.share-btn:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--text-muted);
+  text-decoration: none;
+}
+
+/* ============================================
+   RANKINGS
+   ============================================ */
+
+.rankings-page__header {
+  padding: 24px 24px 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.rankings-page__title {
+  font-size: 1.8rem;
+  font-weight: 900;
+  margin-top: 12px;
+}
+
+.rankings-page__subtitle {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-top: 4px;
+}
+
+.rankings {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px 48px;
+}
+
+.rankings__filters {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.rankings__select {
+  padding: 8px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 0.9rem;
+}
+
+.rankings__count {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.rankings__table-wrapper {
+  overflow-x: auto;
+}
+
+.rankings__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.rankings__table th {
+  text-align: left;
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--border);
+  color: var(--text-secondary);
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.rankings__table th.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.rankings__table th.sortable:hover {
+  color: var(--text-primary);
+}
+
+.rankings__table td {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rankings__row {
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.rankings__row:hover {
+  background: var(--bg-card-hover);
+}
+
+.rankings__rank {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
+.rankings__name {
+  font-weight: 600;
+}
+
+.rankings__bl {
+  color: var(--text-secondary);
+}
+
+.text-alarm {
+  color: var(--alarm-red);
+  font-weight: 700;
+}
+
+/* ============================================
+   LANDKREIS PAGE
+   ============================================ */
+
+.landkreis-page__nav {
+  display: flex;
+  gap: 16px;
+  padding: 16px 24px;
+}
+
+.back-link {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  transition: color 0.2s;
+}
+
+.back-link:hover {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.landkreis-page__content {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 32px;
+  padding: 0 24px 48px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 16px;
+}
+
+.section-count {
+  font-weight: 400;
+  color: var(--text-muted);
+  margin-left: 4px;
+}
+
+/* ============================================
+   BRIDGE LIST
+   ============================================ */
+
+.bridge-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.bridge-item {
+  padding: 12px 16px;
+  background: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  transition: border-color 0.2s;
+}
+
+.bridge-item:hover {
+  border-color: var(--border-light);
+}
+
+.bridge-item__main {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.bridge-item__name {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.bridge-item__details {
+  display: flex;
+  gap: 16px;
+  margin-top: 4px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ============================================
+   LOADING & UTILITY
+   ============================================ */
+
+.loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid var(--border);
+  border-top-color: var(--alarm-red);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.loading-message {
+  color: var(--text-secondary);
+  padding: 32px;
+  text-align: center;
+}
+
+.error-message {
+  color: var(--alarm-red);
+  padding: 32px;
+  text-align: center;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+  .hero-dashboard__title {
+    font-size: 1.6rem;
+  }
+
+  .hero-dashboard__stats {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stat-card__value {
+    font-size: 1.4rem;
+  }
+
+  .landkreis-page__content {
+    grid-template-columns: 1fr;
+  }
+
+  .landkreis-card {
+    max-width: 100%;
+  }
+
+  .bridge-item__details {
+    flex-direction: column;
+    gap: 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-dashboard__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-dashboard__actions {
+    flex-direction: column;
+  }
+
+  .grade-label--xl {
+    font-size: 1.8rem;
+    padding: 12px 24px;
+  }
+}
