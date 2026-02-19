@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useBridgesGeoJSON } from '../hooks/useData';
-import { MAP_STYLE, GERMANY_CENTER, GERMANY_ZOOM } from '../utils/constants';
+import { MAP_STYLE, GERMANY_CENTER, GERMANY_ZOOM, GERMANY_BOUNDS } from '../utils/constants';
 import { getMapColor } from '../utils/grading';
 
 interface BridgeMapProps {
@@ -42,8 +42,13 @@ export function BridgeMap({
             attributionControl: {},
         });
 
-        // Only show +/- nav buttons on non-touch (desktop) devices
+        // Fit to Germany bounds — auto-calculates zoom for any screen size
         const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        map.fitBounds(GERMANY_BOUNDS, {
+            padding: { top: 20, bottom: isTouch ? 180 : 20, left: 20, right: 20 },
+            animate: false,
+        });
+        // Only show +/- nav buttons on desktop
         if (!isTouch) {
             map.addControl(new maplibregl.NavigationControl(), 'top-right');
         }
