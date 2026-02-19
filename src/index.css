@@ -59,11 +59,17 @@ body {
   font-size: 16px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  /* iOS-native feel */
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  overscroll-behavior: none;
 }
 
 #root {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 a {
@@ -83,8 +89,9 @@ a:hover {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 24px;
-  height: 48px;
+  padding: 0 max(24px, env(safe-area-inset-left, 0px));
+  height: calc(48px + env(safe-area-inset-top, 0px));
+  padding-top: env(safe-area-inset-top, 0px);
   background: var(--bg-secondary);
   border-bottom: 1px solid var(--border);
   position: sticky;
@@ -138,11 +145,13 @@ a:hover {
 
 .page {
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .page--home {
   display: flex;
   flex-direction: column;
+  overflow: hidden;
 }
 
 .page--loading,
@@ -163,7 +172,9 @@ a:hover {
 .map-hero {
   position: relative;
   height: calc(100vh - 48px);
+  height: calc(100dvh - 48px);
   min-height: 400px;
+  touch-action: none;
 }
 
 .map-hero .bridge-map-container {
@@ -976,12 +987,17 @@ a:hover {
 }
 
 /* ============================================
-   RESPONSIVE
+   RESPONSIVE — MOBILE-FIRST BOTTOM BAR
    ============================================ */
 
 @media (max-width: 768px) {
 
-  /* ── KPI as bottom bar ── */
+  /* ── Map hero: account for bottom bar ── */
+  .map-hero {
+    height: calc(100dvh - 48px);
+  }
+
+  /* ── KPI docked bottom bar ── */
   .hero-overlay {
     top: auto;
     bottom: 0;
@@ -992,53 +1008,93 @@ a:hover {
 
   .hero-overlay__card {
     max-width: 100%;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    padding: 14px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-radius: 20px 20px 0 0;
+    padding: 10px 20px calc(14px + env(safe-area-inset-bottom, 0px));
     border: none;
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(5, 5, 5, 0.88);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Drag handle indicator (iOS sheet style) */
+  .hero-overlay__card::before {
+    content: '';
+    display: block;
+    width: 36px;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+    margin: 0 auto 8px;
   }
 
   .hero-overlay__header {
-    margin-bottom: 2px;
-  }
-
-  .hero-overlay__title {
-    font-size: 0.85rem;
+    display: none;
   }
 
   .hero-overlay__datenstand {
-    margin-bottom: 10px;
-    font-size: 0.6rem;
+    display: none;
   }
 
   .hero-kpi-grid {
     grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
     margin-bottom: 10px;
+    border-radius: 12px;
   }
 
   .hero-kpi {
-    padding: 6px 8px;
+    padding: 8px 6px;
+    align-items: center;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.03);
   }
 
   .hero-kpi__value {
-    font-size: 1rem;
+    font-size: 1.1rem;
   }
 
   .hero-kpi__label {
-    font-size: 0.58rem;
+    font-size: 0.55rem;
+    letter-spacing: 0.02em;
   }
 
   .hero-kpi__note-hint {
     display: none;
   }
 
+  /* Search compact */
+  .hero-overlay__search {
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .hero-overlay__input {
+    font-size: 0.85rem;
+    padding: 11px 12px;
+  }
+
+  .hero-autocomplete {
+    bottom: 100%;
+    top: auto;
+    margin-top: 0;
+    margin-bottom: 6px;
+    border-radius: 12px;
+    max-height: 50vh;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
   .hero-autocomplete__item {
-    padding: 10px 12px;
+    padding: 12px 14px;
+    min-height: 44px;
   }
 
   /* ── Other responsive ── */
   .landkreis-page__content {
     grid-template-columns: 1fr;
+    padding: 0 16px 48px;
   }
 
   .landkreis-card {
@@ -1049,28 +1105,47 @@ a:hover {
     flex-direction: column;
     gap: 2px;
   }
+
+  .bridge-list {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* 44px min touch targets */
+  .app-header__link {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+  }
+
+  .back-link {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* MapLibre popup touch-friendly */
+  .maplibregl-popup-content {
+    padding: 14px !important;
+  }
+
+  .maplibregl-popup-close-button {
+    font-size: 22px !important;
+    width: 36px !important;
+    height: 36px !important;
+  }
 }
 
 @media (max-width: 480px) {
   .hero-kpi-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1px;
-  }
-
-  .hero-kpi {
-    padding: 8px 10px;
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .hero-kpi__value {
-    font-size: 1.05rem;
+    font-size: 0.95rem;
   }
 
   .hero-kpi__label {
-    font-size: 0.62rem;
-  }
-
-  .hero-kpi__note-hint {
-    display: inline;
+    font-size: 0.5rem;
   }
 
   .grade-label--xl {
