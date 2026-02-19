@@ -85,7 +85,6 @@ export function HeroDashboard() {
                 {/* ── Header ── */}
                 <div className="hero-overlay__header">
                     <h1 className="hero-overlay__title">Infrastruktur-Alarm</h1>
-                    <span className="hero-overlay__badge">LIVE-DATEN</span>
                 </div>
                 <p className="hero-overlay__datenstand">
                     Quelle: BASt · Stand September 2025
@@ -114,18 +113,6 @@ export function HeroDashboard() {
                         <span className="hero-kpi__label">
                             kritisch <span className="hero-kpi__note-hint">Note ≥ 3,0</span>
                         </span>
-                        {/* Critical % bar */}
-                        {stats && (
-                            <div className="hero-kpi__bar-wrap">
-                                <div className="hero-kpi__bar">
-                                    <div
-                                        className="hero-kpi__bar-fill"
-                                        style={{ width: `${stats.criticalPercent}%` }}
-                                    />
-                                </div>
-                                <span className="hero-kpi__bar-label">{stats.criticalPercent}%</span>
-                            </div>
-                        )}
                     </div>
 
                     <div className="hero-kpi">

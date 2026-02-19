@@ -231,8 +231,15 @@ a:hover {
 }
 
 @keyframes badge-pulse {
-  0%, 100% { opacity: 0.7; }
-  50% { opacity: 1; }
+
+  0%,
+  100% {
+    opacity: 0.7;
+  }
+
+  50% {
+    opacity: 1;
+  }
 }
 
 .hero-overlay__datenstand {
@@ -973,16 +980,12 @@ a:hover {
    ============================================ */
 
 @media (max-width: 768px) {
-  .hero-dashboard__title {
-    font-size: 1.6rem;
+  .hero-overlay__card {
+    max-width: calc(100vw - 32px);
   }
 
-  .hero-dashboard__stats {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .stat-card__value {
-    font-size: 1.4rem;
+  .hero-kpi__value {
+    font-size: 1.15rem;
   }
 
   .landkreis-page__content {
@@ -997,15 +1000,41 @@ a:hover {
     flex-direction: column;
     gap: 2px;
   }
+
+  .hero-autocomplete__item {
+    padding: 10px 12px;
+  }
 }
 
 @media (max-width: 480px) {
-  .hero-dashboard__stats {
-    grid-template-columns: 1fr;
+  .hero-overlay {
+    top: 8px;
+    left: 8px;
   }
 
-  .hero-dashboard__actions {
-    flex-direction: column;
+  .hero-overlay__card {
+    max-width: calc(100vw - 16px);
+    padding: 14px 16px 12px;
+  }
+
+  .hero-kpi-grid {
+    gap: 1px;
+  }
+
+  .hero-kpi {
+    padding: 8px 10px;
+  }
+
+  .hero-kpi__value {
+    font-size: 1.05rem;
+  }
+
+  .hero-kpi__label {
+    font-size: 0.62rem;
+  }
+
+  .hero-overlay__title {
+    font-size: 0.85rem;
   }
 
   .grade-label--xl {
