@@ -157,132 +157,141 @@ a:hover {
 }
 
 /* ============================================
-   HERO DASHBOARD
+   MAP-FIRST HERO (Concept C)
    ============================================ */
 
-.hero-dashboard {
-  padding: 32px 24px 24px;
-  background: linear-gradient(180deg, #0a0000 0%, var(--bg-primary) 100%);
-  border-bottom: 1px solid var(--border);
+.map-hero {
+  position: relative;
+  height: calc(100vh - 48px);
+  min-height: 400px;
 }
 
-.hero-dashboard__alarm {
-  text-align: center;
-  margin-bottom: 28px;
+.map-hero .bridge-map-container {
+  position: absolute;
+  inset: 0;
 }
 
-.alarm-icon {
-  font-size: 40px;
-  animation: pulse-alarm 2s ease-in-out infinite;
-}
-
-@keyframes pulse-alarm {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.7;
-    transform: scale(1.1);
-  }
-}
-
-.hero-dashboard__title {
-  font-size: 2.2rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  color: var(--alarm-red);
-  text-transform: uppercase;
-  margin-top: 8px;
-}
-
-.hero-dashboard__subtitle {
-  color: var(--text-secondary);
-  font-size: 0.95rem;
-  margin-top: 6px;
-}
-
-.hero-dashboard__datenstand {
-  color: var(--text-muted);
-  font-size: 0.8rem;
-  margin-top: 4px;
-}
-
-.hero-dashboard__stats {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  max-width: 1000px;
-  margin: 0 auto 24px;
+.map-hero .bridge-map {
+  width: 100%;
+  height: 100%;
 }
 
 /* ============================================
-   STAT CARDS
+   HERO OVERLAY (glassmorphism card on map)
    ============================================ */
 
-.stat-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  transition: border-color 0.2s;
+.hero-overlay {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  z-index: 20;
+  pointer-events: none;
 }
 
-.stat-card:hover {
-  border-color: var(--border-light);
+.hero-overlay__card {
+  background: rgba(5, 5, 5, 0.8);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 45, 45, 0.2);
+  border-radius: var(--radius-lg);
+  padding: 16px 20px;
+  max-width: 360px;
+  pointer-events: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
 }
 
-.stat-card--critical {
-  border-color: rgba(255, 45, 45, 0.3);
-  box-shadow: var(--shadow-glow-red);
+.hero-overlay__header {
+  margin-bottom: 12px;
 }
 
-.stat-card__value {
+.hero-overlay__title {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--alarm-red);
+  text-transform: uppercase;
+  letter-spacing: -0.02em;
+}
+
+.hero-overlay__datenstand {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.hero-overlay__stats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 12px;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.hero-stat__value {
   font-family: var(--font-mono);
-  font-size: 2rem;
+  font-size: 1.2rem;
   font-weight: 700;
   line-height: 1.1;
 }
 
-.stat-card__value--alarm {
+.hero-stat--critical .hero-stat__value {
   color: var(--alarm-red);
 }
 
-.stat-card__label {
-  font-size: 0.85rem;
+.hero-stat__label {
+  font-size: 0.7rem;
   color: var(--text-secondary);
-  margin-top: 6px;
+  margin-top: 2px;
 }
 
-.stat-card__percent {
+.hero-stat__pct {
   color: var(--alarm-red);
-  margin-left: 4px;
 }
 
-.stat-card__bar {
-  height: 6px;
-  background: var(--border);
-  border-radius: 3px;
-  margin-top: 12px;
-  overflow: hidden;
+.hero-overlay__search {
+  display: flex;
 }
 
-.stat-card__bar-fill {
-  height: 100%;
-  background: var(--alarm-orange);
-  border-radius: 3px;
-  transition: width 1s ease;
+.hero-overlay__input {
+  flex: 1;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border);
+  border-right: none;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-.stat-card__sublabel {
-  font-size: 0.75rem;
+.hero-overlay__input:focus {
+  border-color: var(--alarm-red);
+}
+
+.hero-overlay__input::placeholder {
   color: var(--text-muted);
-  margin-top: 4px;
 }
 
+.hero-overlay__btn {
+  padding: 8px 14px;
+  background: var(--alarm-red);
+  color: white;
+  border: none;
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.hero-overlay__btn:hover {
+  background: #e02020;
+}
+
+/* Keep old stat-counter for the animated numbers */
 .stat-counter {
   font-family: var(--font-mono);
 }
@@ -304,89 +313,8 @@ a:hover {
 }
 
 /* ============================================
-   HERO ACTIONS
+   MAP (shared)
    ============================================ */
-
-.hero-dashboard__actions {
-  display: flex;
-  gap: 12px;
-  max-width: 700px;
-  margin: 0 auto;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.hero-search {
-  display: flex;
-  flex: 1;
-  min-width: 240px;
-}
-
-.hero-search__input {
-  flex: 1;
-  padding: 12px 16px;
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-right: none;
-  border-radius: var(--radius-md) 0 0 var(--radius-md);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  font-family: var(--font-sans);
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.hero-search__input:focus {
-  border-color: var(--alarm-red);
-}
-
-.hero-search__input::placeholder {
-  color: var(--text-muted);
-}
-
-.hero-search__btn {
-  padding: 12px 20px;
-  background: var(--alarm-red);
-  color: white;
-  border: none;
-  border-radius: 0 var(--radius-md) var(--radius-md) 0;
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.hero-search__btn:hover {
-  background: #e02020;
-}
-
-.hero-btn {
-  padding: 12px 24px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-card);
-  color: var(--text-primary);
-  font-weight: 600;
-  font-size: 0.9rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-
-.hero-btn:hover {
-  background: var(--bg-card-hover);
-  border-color: var(--alarm-red);
-}
-
-/* ============================================
-   MAP
-   ============================================ */
-
-.map-section {
-  flex: 1;
-  position: relative;
-  min-height: 500px;
-}
 
 .bridge-map-container {
   width: 100%;
@@ -405,6 +333,51 @@ a:hover {
   min-height: 500px;
 }
 
+.bridge-map__scanner {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.bridge-map__scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--alarm-red);
+  box-shadow:
+    0 0 8px 2px rgba(255, 45, 45, 0.5),
+    0 0 40px 8px rgba(255, 45, 45, 0.1);
+  animation: scan-sweep 2.4s ease-in-out infinite;
+}
+
+@keyframes scan-sweep {
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+
+  5% {
+    opacity: 1;
+  }
+
+  50% {
+    top: 100%;
+    opacity: 0.8;
+  }
+
+  55% {
+    opacity: 0;
+  }
+
+  100% {
+    top: 0%;
+    opacity: 0;
+  }
+}
+
 .bridge-map__scan-text {
   position: absolute;
   bottom: 24px;
@@ -412,36 +385,16 @@ a:hover {
   transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(0, 0, 0, 0.85);
+  gap: 8px;
+  background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 45, 45, 0.3);
-  padding: 10px 20px;
+  padding: 8px 16px;
   border-radius: var(--radius-md);
-  font-size: 0.85rem;
+  font-size: 0.8rem;
   color: var(--text-secondary);
   white-space: nowrap;
   backdrop-filter: blur(8px);
   z-index: 10;
-  pointer-events: none;
-}
-
-.bridge-map__scan-icon {
-  font-size: 1.2rem;
-  animation: pulse-radar 1.2s ease-in-out infinite;
-}
-
-@keyframes pulse-radar {
-
-  0%,
-  100% {
-    opacity: 0.5;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 1;
-    transform: scale(1.15);
-  }
 }
 
 /* MapLibre popup overrides */
