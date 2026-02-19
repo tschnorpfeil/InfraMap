@@ -45,7 +45,7 @@ export function BridgeMap({
         // Fit to Germany bounds — auto-calculates zoom for any screen size
         const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         map.fitBounds(GERMANY_BOUNDS, {
-            padding: { top: 10, bottom: isTouch ? 120 : 20, left: 10, right: 10 },
+            padding: isTouch ? 0 : 20,
             animate: false,
         });
         // Only show +/- nav buttons on desktop
