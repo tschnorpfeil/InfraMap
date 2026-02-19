@@ -116,7 +116,7 @@ export function BridgeMap({
                 ],
                 'heatmap-radius': [
                     'interpolate', ['linear'], ['zoom'],
-                    4, 4, 7, 12, 9, 20,
+                    4, 2, 7, 6, 9, 12,
                 ],
                 'heatmap-opacity': [
                     'interpolate', ['linear'], ['zoom'],
@@ -156,7 +156,7 @@ export function BridgeMap({
                 ],
                 'heatmap-radius': [
                     'interpolate', ['linear'], ['zoom'],
-                    4, 5, 7, 14, 9, 22,
+                    4, 3, 7, 8, 9, 14,
                 ],
                 'heatmap-opacity': [
                     'interpolate', ['linear'], ['zoom'],
@@ -193,7 +193,7 @@ export function BridgeMap({
                 ],
                 'heatmap-radius': [
                     'interpolate', ['linear'], ['zoom'],
-                    4, 6, 7, 18, 9, 28,
+                    4, 3, 7, 10, 9, 18,
                 ],
                 'heatmap-opacity': [
                     'interpolate', ['linear'], ['zoom'],
