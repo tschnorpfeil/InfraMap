@@ -11,6 +11,11 @@ interface BridgeMapProps {
     className?: string;
 }
 
+const EMPTY_GEOJSON: GeoJSON.FeatureCollection = {
+    type: 'FeatureCollection',
+    features: [],
+};
+
 export function BridgeMap({
     center = GERMANY_CENTER,
     zoom = GERMANY_ZOOM,
@@ -19,7 +24,8 @@ export function BridgeMap({
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const popupRef = useRef<maplibregl.Popup | null>(null);
-    const { data: geojson, loading } = useBridgesGeoJSON();
+    const layersAdded = useRef(false);
+    const { data: geojson, loading, progress } = useBridgesGeoJSON();
     const [mapReady, setMapReady] = useState(false);
 
     // Initialize map
@@ -50,19 +56,18 @@ export function BridgeMap({
         };
     }, []);
 
-    // Add bridge data when ready
+
+
+    // Set up layers once when map is ready
     useEffect(() => {
-        if (!mapRef.current || !mapReady || !geojson) return;
+        if (!mapRef.current || !mapReady || layersAdded.current) return;
         const m = mapRef.current;
+        layersAdded.current = true;
 
-        // Remove existing layers
-        if (m.getLayer('bridges-circle')) m.removeLayer('bridges-circle');
-        if (m.getLayer('bridges-heat')) m.removeLayer('bridges-heat');
-        if (m.getSource('bridges')) m.removeSource('bridges');
-
+        // Add source with empty data (will be updated progressively)
         m.addSource('bridges', {
             type: 'geojson',
-            data: geojson,
+            data: EMPTY_GEOJSON,
         });
 
         // Heatmap layer
@@ -169,6 +174,15 @@ export function BridgeMap({
             m.off('mouseenter', 'bridges-circle', handleEnter);
             m.off('mouseleave', 'bridges-circle', handleLeave);
         };
+    }, [mapReady]);
+
+    // Hot-swap GeoJSON data progressively
+    useEffect(() => {
+        if (!mapRef.current || !mapReady || !geojson) return;
+        const source = mapRef.current.getSource('bridges');
+        if (source && 'setData' in source) {
+            (source as maplibregl.GeoJSONSource).setData(geojson);
+        }
     }, [mapReady, geojson]);
 
     return (
@@ -176,9 +190,13 @@ export function BridgeMap({
             {loading && (
                 <div className="bridge-map__scanner">
                     <div className="bridge-map__scan-line" />
-                    <div className="bridge-map__scan-text">
-                        📡 Scanne ~40.000 Brücken…
-                    </div>
+                </div>
+            )}
+            {loading && (
+                <div className="bridge-map__scan-text">
+                    📡 {progress.loaded > 0
+                        ? `${progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…`
+                        : 'Scanne ~40.000 Brücken…'}
                 </div>
             )}
             <div ref={mapContainer} className="bridge-map" />

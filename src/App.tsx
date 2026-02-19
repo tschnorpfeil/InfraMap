@@ -1,4 +1,5 @@
 import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { DataProvider } from './contexts/DataProvider';
 import { HomePage } from './pages/HomePage';
 import { LandkreisPage } from './pages/LandkreisPage';
 import { RankingsPage } from './pages/RankingsPage';
@@ -32,14 +33,17 @@ function AppHeader() {
 function App() {
   return (
     <HashRouter>
-      <AppHeader />
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/landkreis/:slug" element={<LandkreisPage />} />
-        <Route path="/rankings" element={<RankingsPage />} />
-      </Routes>
+      <DataProvider>
+        <AppHeader />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/landkreis/:slug" element={<LandkreisPage />} />
+          <Route path="/rankings" element={<RankingsPage />} />
+        </Routes>
+      </DataProvider>
     </HashRouter>
   );
 }
 
 export default App;
+

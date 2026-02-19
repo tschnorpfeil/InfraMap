@@ -291,6 +291,59 @@ a:hover {
   background: #e02020;
 }
 
+.hero-overlay__search-wrapper {
+  position: relative;
+}
+
+.hero-autocomplete {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  background: rgba(10, 10, 10, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  z-index: 30;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+
+.hero-autocomplete__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  font-family: var(--font-sans);
+}
+
+.hero-autocomplete__item:hover,
+.hero-autocomplete__item--active {
+  background: rgba(255, 255, 255, 0.05);
+  border-left-color: var(--alarm-red);
+}
+
+.hero-autocomplete__name {
+  font-weight: 600;
+}
+
+.hero-autocomplete__meta {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  margin-left: 8px;
+}
+
 /* Keep old stat-counter for the animated numbers */
 .stat-counter {
   font-family: var(--font-mono);
