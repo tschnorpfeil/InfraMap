@@ -2,9 +2,9 @@
  * ETL Script: Fetch bridge data from BASt GeoServer → Supabase
  *
  * The BASt bridge viewer at https://via.bund.de/bast/br/map/ uses a GeoServer
- * backend at https://via.bund.de/bast/br/ows. This script queries it
- * systematically using WFS GetFeature requests, converts UTM32 → WGS84
- * coordinates, and upserts the data into a Supabase PostGIS table.
+ * backend at https://via.bund.de/bast/br/ows with WFS layer `bast-br:bast_tbl`.
+ * This script paginates through all features, converts UTM32 → WGS84
+ * coordinates, and upserts the data into Supabase.
  *
  * Usage:
  *   SUPABASE_URL=... SUPABASE_SERVICE_KEY=... npx tsx scripts/etl-bridges.ts
@@ -17,6 +17,10 @@ import { createClient } from '@supabase/supabase-js';
 // ============================================
 
 const BAST_OWS_URL = 'https://via.bund.de/bast/br/ows';
+const WFS_LAYER = 'bast-br:bast_tbl';
+const PAGE_SIZE = 1000;
+const REQUEST_DELAY_MS = 500;
+const UPSERT_BATCH_SIZE = 500;
 
 const SUPABASE_URL = process.env.SUPABASE_URL ?? '';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY ?? '';
@@ -28,30 +32,11 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-// Germany bounding box in EPSG:25832 (UTM32)
-const GERMANY_BBOX_UTM32 = {
-    minX: 280000,
-    maxX: 920000,
-    minY: 5230000,
-    maxY: 6110000,
-};
-
-// Grid tile size (meters) — smaller = more precise but more requests
-const TILE_SIZE = 50000; // 50km tiles
-
-// Delay between requests (ms) — be polite to the server
-const REQUEST_DELAY_MS = 300;
-
-// Batch size for Supabase upserts
-const UPSERT_BATCH_SIZE = 500;
-
 // ============================================
-// UTM32 → WGS84 Conversion (simple formulas)
+// UTM32 → WGS84 Conversion
 // ============================================
 
 function utm32ToWgs84(easting: number, northing: number): { lat: number; lng: number } {
-    // Using a simplified conversion. For production accuracy, use proj4.
-    // This gives ~10m accuracy which is sufficient for bridge locations.
     const k0 = 0.9996;
     const a = 6378137.0;
     const e = 0.0818191908;
@@ -94,23 +79,23 @@ function utm32ToWgs84(easting: number, northing: number): { lat: number; lng: nu
             120) /
         Math.cos(phi1);
 
-    // Convert to degrees and add central meridian for zone 32 (9°E)
     const latDeg = (lat * 180) / Math.PI;
-    const lngDeg = (lng * 180) / Math.PI + 9;
+    const lngDeg = (lng * 180) / Math.PI + 9; // Central meridian zone 32
 
-    return { lat: Math.round(latDeg * 1_000_000) / 1_000_000, lng: Math.round(lngDeg * 1_000_000) / 1_000_000 };
+    return {
+        lat: Math.round(latDeg * 1_000_000) / 1_000_000,
+        lng: Math.round(lngDeg * 1_000_000) / 1_000_000,
+    };
 }
 
 // ============================================
-// BASt GeoServer Fetching
+// BASt WFS Fetching — Simple Pagination
 // ============================================
 
 interface BastFeature {
     type: 'Feature';
-    geometry: {
-        type: 'Point';
-        coordinates: [number, number];
-    };
+    id: string;
+    geometry: { type: 'Point'; coordinates: [number, number] };
     properties: Record<string, unknown>;
 }
 
@@ -118,54 +103,32 @@ interface BastResponse {
     type: 'FeatureCollection';
     features: BastFeature[];
     totalFeatures?: number;
+    numberMatched?: number;
     numberReturned?: number;
 }
 
-async function fetchBridgeTile(
-    minX: number,
-    minY: number,
-    maxX: number,
-    maxY: number
-): Promise<BastFeature[]> {
-    const bbox = `${minX},${minY},${maxX},${maxY},EPSG:25832`;
-
+async function fetchPage(startIndex: number): Promise<{ features: BastFeature[]; total: number | null }> {
     const params = new URLSearchParams({
         service: 'WFS',
         version: '2.0.0',
         request: 'GetFeature',
-        typeName: 'bvwp:bruecken_offen',
+        typeName: WFS_LAYER,
         outputFormat: 'application/json',
-        srsName: 'EPSG:25832',
-        bbox,
-        count: '10000',
+        count: String(PAGE_SIZE),
+        startIndex: String(startIndex),
+        sortBy: 'bwnr',
     });
 
     const url = `${BAST_OWS_URL}?${params.toString()}`;
 
-    try {
-        const response = await fetch(url);
-
-        if (!response.ok) {
-            // Try alternative layer name
-            params.set('typeName', 'bast:bruecken');
-            const url2 = `${BAST_OWS_URL}?${params.toString()}`;
-            const response2 = await fetch(url2);
-
-            if (!response2.ok) {
-                console.warn(`  ⚠️ HTTP ${response2.status} for tile ${minX},${minY}`);
-                return [];
-            }
-
-            const data = (await response2.json()) as BastResponse;
-            return data.features ?? [];
-        }
-
-        const data = (await response.json()) as BastResponse;
-        return data.features ?? [];
-    } catch (err) {
-        console.warn(`  ⚠️ Error fetching tile ${minX},${minY}: ${String(err)}`);
-        return [];
+    const response = await fetch(url);
+    if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${await response.text()}`);
     }
+
+    const data = (await response.json()) as BastResponse;
+    const total = data.totalFeatures ?? data.numberMatched ?? null;
+    return { features: data.features ?? [], total };
 }
 
 // ============================================
@@ -191,37 +154,45 @@ interface BridgeRow {
     stand: string | null;
 }
 
+// Bundesland code → name mapping
+const BL_MAP: Record<number, string> = {
+    1: 'Schleswig-Holstein', 2: 'Hamburg', 3: 'Niedersachsen', 4: 'Bremen',
+    5: 'Nordrhein-Westfalen', 6: 'Hessen', 7: 'Rheinland-Pfalz', 8: 'Baden-Württemberg',
+    9: 'Bayern', 10: 'Saarland', 11: 'Berlin', 12: 'Brandenburg',
+    13: 'Mecklenburg-Vorpommern', 14: 'Sachsen', 15: 'Sachsen-Anhalt', 16: 'Thüringen',
+};
+
 function transformFeature(feature: BastFeature): BridgeRow | null {
     const props = feature.properties;
     const coords = feature.geometry?.coordinates;
-
     if (!coords || coords.length < 2) return null;
 
-    const bwnr = String(props['bwnr'] ?? props['bauwerksnummer'] ?? props['id'] ?? '');
+    const bwnr = String(props['bwnr'] ?? '').trim();
     if (!bwnr) return null;
 
     const { lat, lng } = utm32ToWgs84(coords[0]!, coords[1]!);
-
-    // Validate coordinates are within Germany
     if (lat < 47 || lat > 55.5 || lng < 5 || lng > 15.5) return null;
+
+    const blCode = Number(props['bl'] ?? 0);
+    const note = parseFloat(String(props['zn92019'] ?? ''));
 
     return {
         bauwerksnummer: bwnr,
-        name: String(props['buildingname'] ?? props['name'] ?? 'Unbekannt'),
-        zustandsnote: parseFloat(String(props['zn92019'] ?? props['zustandsnote'] ?? '')) || null,
-        zustandsklasse: String(props['scoreclass'] ?? props['zustandsklasse'] ?? '') || null,
-        baujahr: parseInt(String(props['yearbuild'] ?? props['baujahr'] ?? ''), 10) || null,
-        strasse: String(props['issue'] ?? props['strasse'] ?? '') || null,
-        ort: String(props['place'] ?? props['ort'] ?? '') || null,
-        landkreis: String(props['state'] ?? props['landkreis'] ?? '') || null,
-        bundesland: String(props['bundesland'] ?? '') || null,
-        baustoffklasse: String(props['materialclass'] ?? props['baustoffklasse'] ?? '') || null,
-        traglastindex: parseFloat(String(props['capacityindex'] ?? props['traglastindex'] ?? '')) || null,
-        laenge: parseFloat(String(props['length'] ?? props['laenge'] ?? '')) || null,
-        breite: parseFloat(String(props['width'] ?? props['breite'] ?? '')) || null,
+        name: String(props['buildingname'] ?? 'Unbekannt').trim(),
+        zustandsnote: note > 0 ? note : null,
+        zustandsklasse: String(props['scoreclass'] ?? '').trim() || null,
+        baujahr: Number(props['yearbuild']) || null,
+        strasse: String(props['issue'] ?? '').trim() || null,
+        ort: String(props['place'] ?? '').trim() || null,
+        landkreis: String(props['state'] ?? '').trim() || null,
+        bundesland: BL_MAP[blCode] ?? null,
+        baustoffklasse: String(props['materialclass'] ?? '').trim() || null,
+        traglastindex: null, // capacityindex is Roman numeral (I, II, III...), not numeric
+        laenge: Number(props['length']) || null,
+        breite: Number(props['width']) || null,
         lat,
         lng,
-        stand: String(props['updated'] ?? props['stand'] ?? '') || null,
+        stand: String(props['updated'] ?? '').trim() || null,
     };
 }
 
@@ -231,10 +202,8 @@ function transformFeature(feature: BastFeature): BridgeRow | null {
 
 async function upsertBridges(bridges: BridgeRow[]): Promise<number> {
     let inserted = 0;
-
     for (let i = 0; i < bridges.length; i += UPSERT_BATCH_SIZE) {
         const batch = bridges.slice(i, i + UPSERT_BATCH_SIZE);
-
         const { error } = await supabase
             .from('bruecken')
             .upsert(batch, { onConflict: 'bauwerksnummer' });
@@ -245,106 +214,106 @@ async function upsertBridges(bridges: BridgeRow[]): Promise<number> {
             inserted += batch.length;
         }
     }
-
     return inserted;
 }
 
 // ============================================
-// Main ETL Pipeline
+// Main
 // ============================================
 
 async function main() {
     console.log('🚨 InfraMap ETL — BASt Bridge Data Pipeline');
     console.log('============================================\n');
-
-    const { minX, maxX, minY, maxY } = GERMANY_BBOX_UTM32;
-    const tilesX = Math.ceil((maxX - minX) / TILE_SIZE);
-    const tilesY = Math.ceil((maxY - minY) / TILE_SIZE);
-    const totalTiles = tilesX * tilesY;
-
-    console.log(`📐 Grid: ${tilesX}×${tilesY} = ${totalTiles} tiles (${TILE_SIZE / 1000}km each)`);
-    console.log(`🌐 Source: ${BAST_OWS_URL}`);
+    console.log(`🌐 Source: ${BAST_OWS_URL} (layer: ${WFS_LAYER})`);
     console.log(`💾 Target: ${SUPABASE_URL}\n`);
 
-    const allBridges = new Map<string, BridgeRow>();
-    let tileCount = 0;
+    const allBridges: BridgeRow[] = [];
+    let startIndex = 0;
+    let totalFeatures: number | null = null;
+    let pagesWithNoData = 0;
 
-    for (let xi = 0; xi < tilesX; xi++) {
-        for (let yi = 0; yi < tilesY; yi++) {
-            tileCount++;
-            const tileMinX = minX + xi * TILE_SIZE;
-            const tileMinY = minY + yi * TILE_SIZE;
-            const tileMaxX = Math.min(tileMinX + TILE_SIZE, maxX);
-            const tileMaxY = Math.min(tileMinY + TILE_SIZE, maxY);
+    console.log('📥 Fetching bridges via WFS pagination...\n');
 
-            process.stdout.write(
-                `\r  Tile ${tileCount}/${totalTiles} (${Math.round((tileCount / totalTiles) * 100)}%) — ${allBridges.size} bridges found`
-            );
+    while (true) {
+        try {
+            const { features, total } = await fetchPage(startIndex);
+            if (total !== null && totalFeatures === null) {
+                totalFeatures = total;
+                console.log(`   Total features reported by server: ${total}\n`);
+            }
 
-            const features = await fetchBridgeTile(tileMinX, tileMinY, tileMaxX, tileMaxY);
+            if (features.length === 0) {
+                pagesWithNoData++;
+                if (pagesWithNoData >= 3) break; // 3 consecutive empty pages = done
+                startIndex += PAGE_SIZE;
+                continue;
+            }
+
+            pagesWithNoData = 0;
 
             for (const f of features) {
                 const row = transformFeature(f);
-                if (row) {
-                    allBridges.set(row.bauwerksnummer, row);
-                }
+                if (row) allBridges.push(row);
             }
 
-            // Rate limiting
-            await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY_MS));
+            const pct = totalFeatures ? Math.round((startIndex / totalFeatures) * 100) : '?';
+            process.stdout.write(
+                `\r  Page ${Math.floor(startIndex / PAGE_SIZE) + 1} | ${allBridges.length} bridges | ${pct}%`
+            );
+
+            startIndex += features.length;
+            if (totalFeatures && startIndex >= totalFeatures) break;
+
+            await new Promise((r) => setTimeout(r, REQUEST_DELAY_MS));
+        } catch (err) {
+            console.error(`\n  ❌ Error at index ${startIndex}: ${String(err)}`);
+            await new Promise((r) => setTimeout(r, 2000));
+            // Retry
         }
     }
 
-    console.log(`\n\n✅ Fetched ${allBridges.size} unique bridges\n`);
+    console.log(`\n\n✅ Fetched ${allBridges.length} bridges\n`);
 
-    if (allBridges.size === 0) {
-        console.log('⚠️ No bridges found. The GeoServer layer name may have changed.');
-        console.log('   Try inspecting the network tab at https://via.bund.de/bast/br/map/');
-        console.log('   to find the correct WFS typeName.\n');
-
-        // Try a GetCapabilities request to list available layers
-        console.log('🔍 Attempting GetCapabilities...');
-        try {
-            const caps = await fetch(
-                `${BAST_OWS_URL}?service=WFS&version=2.0.0&request=GetCapabilities`
-            );
-            const text = await caps.text();
-            const layerMatches = text.match(/<Name>([^<]+)<\/Name>/g);
-            if (layerMatches) {
-                console.log('   Available layers:');
-                layerMatches.forEach((m) => console.log(`     - ${m.replace(/<\/?Name>/g, '')}`));
-            }
-        } catch {
-            console.log('   Could not retrieve capabilities.');
-        }
-
+    if (allBridges.length === 0) {
+        console.error('❌ No bridges fetched. Check the WFS layer name.');
         process.exit(1);
     }
 
+    // Deduplicate by bauwerksnummer
+    const deduped = new Map<string, BridgeRow>();
+    for (const b of allBridges) {
+        deduped.set(b.bauwerksnummer, b);
+    }
+    const unique = Array.from(deduped.values());
+    console.log(`   Unique bridges (after dedup): ${unique.length}\n`);
+
     // Upsert to Supabase
     console.log('💾 Upserting to Supabase...');
-    const bridgeArray = Array.from(allBridges.values());
-    const inserted = await upsertBridges(bridgeArray);
+    const inserted = await upsertBridges(unique);
     console.log(`✅ Upserted ${inserted} bridge records\n`);
 
     // Refresh materialized view
     console.log('📊 Refreshing landkreis_stats materialized view...');
     const { error: refreshError } = await supabase.rpc('refresh_landkreis_stats');
     if (refreshError) {
-        console.log(`  ⚠️ Could not refresh view: ${refreshError.message}`);
-        console.log('  You may need to run: REFRESH MATERIALIZED VIEW landkreis_stats;');
+        console.log(`  ⚠️ Could not refresh view via RPC: ${refreshError.message}`);
+        console.log('  Run manually: REFRESH MATERIALIZED VIEW landkreis_stats;');
     } else {
-        console.log('✅ Materialized view refreshed\n');
+        console.log('✅ View refreshed\n');
     }
 
     // Stats
-    const withNote = bridgeArray.filter((b) => b.zustandsnote !== null);
+    const withNote = unique.filter((b) => b.zustandsnote !== null);
     const critical = withNote.filter((b) => b.zustandsnote !== null && b.zustandsnote >= 3.0);
+    const landkreise = new Set(unique.map((b) => b.landkreis).filter(Boolean));
+    const bundeslaender = new Set(unique.map((b) => b.bundesland).filter(Boolean));
+
     console.log('📈 Summary:');
-    console.log(`   Total bridges:     ${bridgeArray.length}`);
-    console.log(`   With Zustandsnote: ${withNote.length}`);
-    console.log(`   Critical (≥3.0):   ${critical.length} (${Math.round((critical.length / withNote.length) * 100)}%)`);
-    console.log(`   Landkreise:        ${new Set(bridgeArray.map((b) => b.landkreis)).size}`);
+    console.log(`   Total bridges:      ${unique.length}`);
+    console.log(`   With Zustandsnote:  ${withNote.length}`);
+    console.log(`   Critical (≥3.0):    ${critical.length} (${Math.round((critical.length / Math.max(withNote.length, 1)) * 100)}%)`);
+    console.log(`   Landkreise:         ${landkreise.size}`);
+    console.log(`   Bundesländer:       ${bundeslaender.size}`);
     console.log('\n🏁 ETL complete!');
 }
 
