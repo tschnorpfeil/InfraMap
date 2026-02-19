@@ -52,64 +52,68 @@ export function BridgeMap({
 
     // Add data sources when both map and data are ready
     useEffect(() => {
-        const map = mapRef.current;
-        if (!map || !mapReady || !geojson) return;
+        if (!mapRef.current || !mapReady || !geojson) return;
+        const m = mapRef.current;
 
         // Remove existing sources/layers if updating
-        if (map.getLayer('bridges-circle')) map.removeLayer('bridges-circle');
-        if (map.getLayer('bridges-heat')) map.removeLayer('bridges-heat');
-        if (map.getSource('bridges')) map.removeSource('bridges');
+        if (m.getLayer('bridges-circle')) m.removeLayer('bridges-circle');
+        if (m.getLayer('bridges-heat')) m.removeLayer('bridges-heat');
+        if (m.getSource('bridges')) m.removeSource('bridges');
 
-        map.addSource('bridges', {
+        m.addSource('bridges', {
             type: 'geojson',
             data: geojson,
         });
 
-        // Heatmap layer (visible at low zoom)
-        map.addLayer({
+        // Heatmap layer — tuned for 40k points, subtle glow
+        m.addLayer({
             id: 'bridges-heat',
             type: 'heatmap',
             source: 'bridges',
             maxzoom: 9,
             paint: {
+                // Only critical bridges (≥2.5) contribute significant weight
                 'heatmap-weight': [
                     'interpolate', ['linear'],
                     ['get', 'zustandsnote'],
-                    1.0, 0,
-                    2.5, 0.3,
-                    3.0, 0.7,
+                    1.0, 0.05,
+                    2.0, 0.15,
+                    2.5, 0.4,
+                    3.0, 0.8,
                     4.0, 1,
                 ],
                 'heatmap-intensity': [
                     'interpolate', ['linear'], ['zoom'],
-                    0, 0.5,
-                    9, 2,
+                    4, 0.2,
+                    6, 0.4,
+                    9, 0.8,
                 ],
                 'heatmap-color': [
                     'interpolate', ['linear'], ['heatmap-density'],
                     0, 'rgba(0,0,0,0)',
-                    0.1, 'rgba(34,197,94,0.4)',
-                    0.3, 'rgba(250,204,21,0.6)',
-                    0.5, 'rgba(249,115,22,0.7)',
-                    0.7, 'rgba(239,68,68,0.8)',
-                    1, 'rgba(220,38,38,0.9)',
+                    0.15, 'rgba(34,197,94,0.2)',
+                    0.3, 'rgba(234,179,8,0.35)',
+                    0.5, 'rgba(249,115,22,0.45)',
+                    0.7, 'rgba(239,68,68,0.55)',
+                    1, 'rgba(220,38,38,0.7)',
                 ],
                 'heatmap-radius': [
                     'interpolate', ['linear'], ['zoom'],
-                    0, 2,
-                    5, 10,
-                    9, 25,
+                    4, 2,
+                    6, 5,
+                    8, 12,
+                    9, 18,
                 ],
                 'heatmap-opacity': [
                     'interpolate', ['linear'], ['zoom'],
-                    7, 1,
+                    7, 0.9,
                     9, 0,
                 ],
             },
         });
 
         // Circle layer (visible at higher zoom)
-        map.addLayer({
+        m.addLayer({
             id: 'bridges-circle',
             type: 'circle',
             source: 'bridges',
@@ -142,8 +146,8 @@ export function BridgeMap({
             },
         });
 
-        // Click popup
-        map.on('click', 'bridges-circle', (e) => {
+        // Click popup handler
+        function handleClick(e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) {
             const feature = e.features?.[0];
             if (!feature || feature.geometry.type !== 'Point') return;
 
@@ -169,23 +173,33 @@ export function BridgeMap({
             </div>
           </div>
         `)
-                .addTo(map);
-        });
+                .addTo(m);
+        }
 
-        map.on('mouseenter', 'bridges-circle', () => {
-            map.getCanvas().style.cursor = 'pointer';
-        });
-        map.on('mouseleave', 'bridges-circle', () => {
-            map.getCanvas().style.cursor = '';
-        });
+        function handleEnter() { m.getCanvas().style.cursor = 'pointer'; }
+        function handleLeave() { m.getCanvas().style.cursor = ''; }
+
+        m.on('click', 'bridges-circle', handleClick);
+        m.on('mouseenter', 'bridges-circle', handleEnter);
+        m.on('mouseleave', 'bridges-circle', handleLeave);
+
+        // Cleanup listeners on re-render
+        return () => {
+            m.off('click', 'bridges-circle', handleClick);
+            m.off('mouseenter', 'bridges-circle', handleEnter);
+            m.off('mouseleave', 'bridges-circle', handleLeave);
+        };
     }, [mapReady, geojson]);
 
     return (
         <div className={`bridge-map-container ${className}`}>
             {loading && (
-                <div className="bridge-map__loading">
-                    <div className="loading-spinner" />
-                    <span>Lade Brückendaten...</span>
+                <div className="bridge-map__scanner">
+                    <div className="bridge-map__scan-line" />
+                    <div className="bridge-map__scan-text">
+                        <span className="bridge-map__scan-icon">📡</span>
+                        <span>Scanne {geojson ? geojson.features.length.toLocaleString('de-DE') : '~40.000'} Brücken…</span>
+                    </div>
                 </div>
             )}
             <div ref={mapContainer} className="bridge-map" />
