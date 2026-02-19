@@ -11,14 +11,14 @@ function AppHeader() {
   return (
     <header className="app-header">
       <Link to="/" className="app-header__logo">
-        🚨 <span>InfraMap</span>
+        📋 <span>Brückenzeugnis</span>
       </Link>
       <nav className="app-header__nav">
         <Link
           to="/rankings"
           className={`app-header__link ${location.pathname === '/rankings' ? 'app-header__link--active' : ''}`}
         >
-          🏆 Schandmauer
+          📊 Ranking
         </Link>
         {!isHome && (
           <Link to="/" className="app-header__link">

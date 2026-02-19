@@ -11,14 +11,14 @@ export function LandkreisCard({ stats }: LandkreisCardProps) {
     const avgAge = Math.round(currentYear - stats.avg_baujahr);
     const base = window.location.pathname.replace(/\/$/, '');
     const shareUrl = `${window.location.origin}${base}/#/landkreis/${stats.slug}`;
-    const shareText = `🚨 Infrastruktur-Zeugnis: ${stats.landkreis} — Note ${stats.avg_note.toFixed(1)} (${stats.kritisch_count} kritische Brücken von ${stats.total_bruecken})`;
+    const shareText = `📋 Brückenzeugnis: ${stats.landkreis} — Note ${stats.avg_note.toFixed(1)} (${stats.kritisch_count} kritische Brücken von ${stats.total_bruecken})`;
 
     return (
         <div className="landkreis-card">
             <div className="landkreis-card__header">
                 <div className="landkreis-card__icon">📋</div>
                 <div className="landkreis-card__title-block">
-                    <h2 className="landkreis-card__title">Infrastruktur-Zeugnis</h2>
+                    <h2 className="landkreis-card__title">Brückenzeugnis</h2>
                     <h3 className="landkreis-card__name">{stats.landkreis}</h3>
                     <span className="landkreis-card__bundesland">{stats.bundesland}</span>
                 </div>
@@ -67,7 +67,7 @@ export function LandkreisCard({ stats }: LandkreisCardProps) {
             </div>
 
             <div className="landkreis-card__share">
-                <ShareButtons title="Infrastruktur-Zeugnis" text={shareText} url={shareUrl} />
+                <ShareButtons title="Brückenzeugnis" text={shareText} url={shareUrl} />
             </div>
         </div>
     );

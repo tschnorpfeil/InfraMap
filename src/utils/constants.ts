@@ -1,7 +1,7 @@
-export const APP_NAME = 'InfraMap';
-export const APP_TITLE = 'Infrastruktur-Alarm Deutschland';
+export const APP_NAME = 'Brückenzeugnis';
+export const APP_TITLE = 'Zustandsnoten für Deutschlands Brücken';
 export const APP_DESCRIPTION =
-    'Interaktive Karte zum Zustand deutscher Brücken — datenbasiert, transparent, alarmierend.';
+    'Brückenzeugnis: Interaktive Karte zum Zustand aller 40.000 Brücken in Deutschland — datenbasiert, transparent, alarmierend.';
 
 export const SONDERVERMOEGEN_TOTAL = 500_000_000_000;
 export const SONDERVERMOEGEN_VERKEHR = 166_000_000_000;

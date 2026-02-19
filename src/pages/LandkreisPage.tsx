@@ -18,7 +18,7 @@ export function LandkreisPage() {
 
     useEffect(() => {
         if (match) {
-            document.title = `${match.landkreis} — Infrastruktur-Zeugnis | InfraMap`;
+            document.title = `${match.landkreis} — Brückenzeugnis`;
         }
     }, [match]);
 

@@ -42,9 +42,27 @@ export function BridgeMap({
             attributionControl: {},
         });
 
-        map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        // Only show +/- nav buttons on non-touch (desktop) devices
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        if (!isTouch) {
+            map.addControl(new maplibregl.NavigationControl(), 'top-right');
+        }
 
         map.on('load', () => {
+            // Switch all text labels to German
+            for (const layer of map.getStyle().layers) {
+                if (layer.type === 'symbol') {
+                    const textField = map.getLayoutProperty(layer.id, 'text-field');
+                    if (textField) {
+                        map.setLayoutProperty(layer.id, 'text-field', [
+                            'coalesce',
+                            ['get', 'name:de'],
+                            ['get', 'name_de'],
+                            ['get', 'name'],
+                        ]);
+                    }
+                }
+            }
             setMapReady(true);
         });
 

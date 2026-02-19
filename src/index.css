@@ -980,14 +980,63 @@ a:hover {
    ============================================ */
 
 @media (max-width: 768px) {
+
+  /* ── KPI as bottom bar ── */
+  .hero-overlay {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 0;
+  }
+
   .hero-overlay__card {
-    max-width: calc(100vw - 32px);
+    max-width: 100%;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    padding: 14px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .hero-overlay__header {
+    margin-bottom: 2px;
+  }
+
+  .hero-overlay__title {
+    font-size: 0.85rem;
+  }
+
+  .hero-overlay__datenstand {
+    margin-bottom: 10px;
+    font-size: 0.6rem;
+  }
+
+  .hero-kpi-grid {
+    grid-template-columns: repeat(4, 1fr);
+    margin-bottom: 10px;
+  }
+
+  .hero-kpi {
+    padding: 6px 8px;
   }
 
   .hero-kpi__value {
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
 
+  .hero-kpi__label {
+    font-size: 0.58rem;
+  }
+
+  .hero-kpi__note-hint {
+    display: none;
+  }
+
+  .hero-autocomplete__item {
+    padding: 10px 12px;
+  }
+
+  /* ── Other responsive ── */
   .landkreis-page__content {
     grid-template-columns: 1fr;
   }
@@ -1000,24 +1049,11 @@ a:hover {
     flex-direction: column;
     gap: 2px;
   }
-
-  .hero-autocomplete__item {
-    padding: 10px 12px;
-  }
 }
 
 @media (max-width: 480px) {
-  .hero-overlay {
-    top: 8px;
-    left: 8px;
-  }
-
-  .hero-overlay__card {
-    max-width: calc(100vw - 16px);
-    padding: 14px 16px 12px;
-  }
-
   .hero-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
     gap: 1px;
   }
 
@@ -1033,8 +1069,8 @@ a:hover {
     font-size: 0.62rem;
   }
 
-  .hero-overlay__title {
-    font-size: 0.85rem;
+  .hero-kpi__note-hint {
+    display: inline;
   }
 
   .grade-label--xl {

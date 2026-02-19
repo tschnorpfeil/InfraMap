@@ -84,7 +84,7 @@ export function HeroDashboard() {
             <div className="hero-overlay__card">
                 {/* ── Header ── */}
                 <div className="hero-overlay__header">
-                    <h1 className="hero-overlay__title">Infrastruktur-Alarm</h1>
+                    <h1 className="hero-overlay__title">Brückenzeugnis</h1>
                 </div>
                 <p className="hero-overlay__datenstand">
                     Quelle: BASt · Stand September 2025
