@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { supabase } from '../lib/supabase';
 import type { LandkreisStats } from '../types';
@@ -134,22 +134,16 @@ export function DataProvider({ children }: { children: ReactNode }) {
     const [bridgeProgress, setBridgeProgress] = useState<BridgeLoadProgress>({
         loaded: 0, estimatedTotal: ESTIMATED_TOTAL, done: false,
     });
-    const bridgesFetchedRef = useRef(false);
 
     // Landkreise (cached)
     const [landkreise, setLandkreise] = useState<LandkreisStats[] | null>(null);
     const [landkreiseLoading, setLandkreiseLoading] = useState(true);
-    const landkreiseFetchedRef = useRef(false);
 
     // Global stats (cached)
     const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
-    const statsFetchedRef = useRef(false);
 
     // ── Progressive bridge loading ──
     useEffect(() => {
-        if (bridgesFetchedRef.current) return;
-        bridgesFetchedRef.current = true;
-
         let cancelled = false;
         const allFeatures: GeoJSON.Feature[] = [];
 
@@ -199,9 +193,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     // ── Landkreise (one-shot) ──
     useEffect(() => {
-        if (landkreiseFetchedRef.current) return;
-        landkreiseFetchedRef.current = true;
-
         let cancelled = false;
 
         async function fetchLandkreise() {
@@ -240,8 +231,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     // ── Global stats (one-shot) ──
     useEffect(() => {
-        if (statsFetchedRef.current) return;
-        statsFetchedRef.current = true;
 
         async function fetchStats() {
             const { count: totalBridges } = await supabase
