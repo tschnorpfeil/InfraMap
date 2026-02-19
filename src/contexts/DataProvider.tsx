@@ -124,7 +124,7 @@ function mergeLandkreisStats(allStats: Record<string, unknown>[]): LandkreisStat
 
 // ── Provider ──
 
-const PAGE_SIZE = 5000;
+const PAGE_SIZE = 1000;
 const ESTIMATED_TOTAL = 40000;
 const BRIDGE_SELECT = 'bauwerksnummer, name, lat, lng, zustandsnote, baujahr, strasse, landkreis, bundesland';
 

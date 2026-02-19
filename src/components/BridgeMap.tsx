@@ -89,11 +89,11 @@ export function BridgeMap({
                 'heatmap-color': [
                     'interpolate', ['linear'], ['heatmap-density'],
                     0, 'rgba(0,0,0,0)',
-                    0.1, 'rgba(34,197,94,0.3)',
-                    0.25, 'rgba(234,179,8,0.5)',
+                    0.1, 'rgba(255,235,59,0.3)',
+                    0.25, 'rgba(255,152,0,0.45)',
                     0.45, 'rgba(249,115,22,0.6)',
                     0.65, 'rgba(239,68,68,0.7)',
-                    1, 'rgba(220,38,38,0.85)',
+                    1, 'rgba(183,28,28,0.85)',
                 ],
                 'heatmap-radius': [
                     'interpolate', ['linear'], ['zoom'],
