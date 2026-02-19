@@ -187,16 +187,13 @@ export function BridgeMap({
 
     return (
         <div className={`bridge-map-container ${className}`}>
-            {loading && (
-                <div className="bridge-map__scanner">
-                    <div className="bridge-map__scan-line" />
-                </div>
-            )}
-            {loading && (
+            {loading && progress.loaded > 0 && (
                 <div className="bridge-map__scan-text">
-                    📡 {progress.loaded > 0
-                        ? `${progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…`
-                        : 'Scanne ~40.000 Brücken…'}
+                    {progress.loaded < 5000
+                        ? `🔴 ${progress.loaded.toLocaleString('de-DE')} kritische Brücken geladen…`
+                        : progress.loaded < 20000
+                            ? `🟡 ${progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…`
+                            : `🟢 ${progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…`}
                 </div>
             )}
             <div ref={mapContainer} className="bridge-map" />

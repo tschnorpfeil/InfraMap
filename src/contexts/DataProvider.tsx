@@ -124,7 +124,7 @@ function mergeLandkreisStats(allStats: Record<string, unknown>[]): LandkreisStat
 
 // ── Provider ──
 
-const PAGE_SIZE = 1000;
+const PAGE_SIZE = 5000;
 const ESTIMATED_TOTAL = 40000;
 const BRIDGE_SELECT = 'bauwerksnummer, name, lat, lng, zustandsnote, baujahr, strasse, landkreis, bundesland';
 
@@ -142,7 +142,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
     // Global stats (cached)
     const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
 
-    // ── Progressive bridge loading ──
+    // ── Progressive bridge loading (worst grades first) ──
     useEffect(() => {
         let cancelled = false;
         const allFeatures: GeoJSON.Feature[] = [];
@@ -155,6 +155,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 const { data, error } = await supabase
                     .from('bruecken')
                     .select(BRIDGE_SELECT)
+                    .order('zustandsnote', { ascending: false })
                     .range(from, from + PAGE_SIZE - 1);
 
                 if (error) throw new Error(error.message);
@@ -163,10 +164,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
                 allFeatures.push(...newFeatures);
 
                 if (!cancelled) {
-                    // Update GeoJSON progressively
+                    // New object reference triggers React update, but reuse same features array
                     setGeojson({
                         type: 'FeatureCollection',
-                        features: [...allFeatures],
+                        features: allFeatures,
                     });
                     setBridgeProgress({
                         loaded: allFeatures.length,
