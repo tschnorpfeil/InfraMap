@@ -405,51 +405,6 @@ a:hover {
   min-height: 500px;
 }
 
-.bridge-map__scanner {
-  position: absolute;
-  inset: 0;
-  z-index: 10;
-  pointer-events: none;
-  overflow: hidden;
-}
-
-.bridge-map__scan-line {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: var(--alarm-red);
-  box-shadow:
-    0 0 12px 4px rgba(255, 45, 45, 0.6),
-    0 -40px 60px 10px rgba(255, 45, 45, 0.08);
-  animation: scan-sweep 2.4s ease-in-out infinite;
-}
-
-@keyframes scan-sweep {
-  0% {
-    top: 0%;
-    opacity: 0;
-  }
-
-  5% {
-    opacity: 1;
-  }
-
-  50% {
-    top: 100%;
-    opacity: 1;
-  }
-
-  55% {
-    opacity: 0;
-  }
-
-  100% {
-    top: 0%;
-    opacity: 0;
-  }
-}
-
 .bridge-map__scan-text {
   position: absolute;
   bottom: 24px;
@@ -466,6 +421,8 @@ a:hover {
   color: var(--text-secondary);
   white-space: nowrap;
   backdrop-filter: blur(8px);
+  z-index: 10;
+  pointer-events: none;
 }
 
 .bridge-map__scan-icon {

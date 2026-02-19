@@ -1,9 +1,28 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useBridgesGeoJSON } from '../hooks/useData';
 import { MAP_STYLE, GERMANY_CENTER, GERMANY_ZOOM } from '../utils/constants';
 import { getMapColor } from '../utils/grading';
+
+// Simplified Germany border polygon (~30 points, WGS84)
+const GERMANY_POLYGON: GeoJSON.Feature<GeoJSON.Polygon> = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+        type: 'Polygon',
+        coordinates: [[
+            [8.6, 54.9], [9.9, 54.5], [10.8, 54.0], [11.4, 54.3], [12.5, 54.4],
+            [13.4, 54.3], [14.2, 53.9], [14.4, 53.3], [14.7, 52.1], [14.7, 51.5],
+            [15.0, 51.0], [14.3, 50.9], [12.9, 50.3], [12.1, 50.3], [12.1, 49.5],
+            [13.0, 48.9], [13.4, 48.6], [13.0, 47.5], [12.2, 47.6], [10.5, 47.3],
+            [9.6, 47.5], [8.6, 47.7], [7.6, 47.6], [7.5, 48.1], [7.7, 48.5],
+            [7.8, 49.0], [6.8, 49.2], [6.3, 49.8], [6.1, 50.1], [6.0, 50.8],
+            [5.9, 51.0], [6.0, 51.8], [6.7, 51.9], [7.0, 52.2], [7.2, 53.3],
+            [6.9, 53.6], [7.9, 53.8], [8.6, 53.9], [8.9, 54.0], [8.6, 54.9],
+        ]],
+    },
+};
 
 interface BridgeMapProps {
     center?: [number, number];
@@ -19,8 +38,41 @@ export function BridgeMap({
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const popupRef = useRef<maplibregl.Popup | null>(null);
+    const scanAnimRef = useRef<number | null>(null);
     const { data: geojson, loading } = useBridgesGeoJSON();
     const [mapReady, setMapReady] = useState(false);
+
+    // Animate the scan pulse on the Germany polygon
+    const startScanAnimation = useCallback((map: maplibregl.Map) => {
+        const startTime = Date.now();
+        const CYCLE_MS = 2800;
+
+        function animate() {
+            if (!map.getLayer('germany-scan-fill')) return;
+
+            const elapsed = (Date.now() - startTime) % CYCLE_MS;
+            const t = elapsed / CYCLE_MS;
+
+            // Pulsing fill opacity: 0.05 → 0.2 → 0.05
+            const fillOpacity = 0.05 + 0.15 * Math.sin(t * Math.PI * 2);
+
+            // Border glow: 0.3 → 0.8 → 0.3
+            const lineOpacity = 0.3 + 0.5 * Math.sin(t * Math.PI * 2);
+
+            try {
+                map.setPaintProperty('germany-scan-fill', 'fill-opacity', fillOpacity);
+                map.setPaintProperty('germany-scan-line', 'line-opacity', lineOpacity);
+                map.setPaintProperty('germany-scan-line', 'line-width', 1.5 + Math.sin(t * Math.PI * 2));
+            } catch {
+                // Layer might have been removed
+                return;
+            }
+
+            scanAnimRef.current = requestAnimationFrame(animate);
+        }
+
+        scanAnimRef.current = requestAnimationFrame(animate);
+    }, []);
 
     // Initialize map
     useEffect(() => {
@@ -39,23 +91,61 @@ export function BridgeMap({
         map.addControl(new maplibregl.NavigationControl(), 'top-right');
 
         map.on('load', () => {
+            // Add Germany scan polygon immediately on map load
+            map.addSource('germany-border', {
+                type: 'geojson',
+                data: GERMANY_POLYGON,
+            });
+
+            map.addLayer({
+                id: 'germany-scan-fill',
+                type: 'fill',
+                source: 'germany-border',
+                paint: {
+                    'fill-color': '#ff2d2d',
+                    'fill-opacity': 0.08,
+                },
+            });
+
+            map.addLayer({
+                id: 'germany-scan-line',
+                type: 'line',
+                source: 'germany-border',
+                paint: {
+                    'line-color': '#ff2d2d',
+                    'line-width': 2,
+                    'line-opacity': 0.5,
+                },
+            });
+
+            startScanAnimation(map);
             setMapReady(true);
         });
 
         mapRef.current = map;
 
         return () => {
+            if (scanAnimRef.current) cancelAnimationFrame(scanAnimRef.current);
             map.remove();
             mapRef.current = null;
         };
     }, []);
 
-    // Add data sources when both map and data are ready
+    // Remove scan layers when data loads, add bridge layers
     useEffect(() => {
         if (!mapRef.current || !mapReady || !geojson) return;
         const m = mapRef.current;
 
-        // Remove existing sources/layers if updating
+        // Stop scan animation and remove scan layers
+        if (scanAnimRef.current) {
+            cancelAnimationFrame(scanAnimRef.current);
+            scanAnimRef.current = null;
+        }
+        if (m.getLayer('germany-scan-fill')) m.removeLayer('germany-scan-fill');
+        if (m.getLayer('germany-scan-line')) m.removeLayer('germany-scan-line');
+        if (m.getSource('germany-border')) m.removeSource('germany-border');
+
+        // Remove existing bridge layers if updating
         if (m.getLayer('bridges-circle')) m.removeLayer('bridges-circle');
         if (m.getLayer('bridges-heat')) m.removeLayer('bridges-heat');
         if (m.getSource('bridges')) m.removeSource('bridges');
@@ -65,14 +155,13 @@ export function BridgeMap({
             data: geojson,
         });
 
-        // Heatmap layer — tuned for 40k points, subtle glow
+        // Heatmap layer — balanced for 40k points
         m.addLayer({
             id: 'bridges-heat',
             type: 'heatmap',
             source: 'bridges',
             maxzoom: 9,
             paint: {
-                // Only critical bridges (≥2.5) contribute significant weight
                 'heatmap-weight': [
                     'interpolate', ['linear'],
                     ['get', 'zustandsnote'],
@@ -84,18 +173,18 @@ export function BridgeMap({
                 ],
                 'heatmap-intensity': [
                     'interpolate', ['linear'], ['zoom'],
-                    4, 0.2,
-                    6, 0.4,
-                    9, 0.8,
+                    4, 0.3,
+                    6, 0.6,
+                    9, 1.2,
                 ],
                 'heatmap-color': [
                     'interpolate', ['linear'], ['heatmap-density'],
                     0, 'rgba(0,0,0,0)',
-                    0.15, 'rgba(34,197,94,0.2)',
-                    0.3, 'rgba(234,179,8,0.35)',
-                    0.5, 'rgba(249,115,22,0.45)',
-                    0.7, 'rgba(239,68,68,0.55)',
-                    1, 'rgba(220,38,38,0.7)',
+                    0.1, 'rgba(34,197,94,0.25)',
+                    0.25, 'rgba(234,179,8,0.45)',
+                    0.45, 'rgba(249,115,22,0.55)',
+                    0.65, 'rgba(239,68,68,0.65)',
+                    1, 'rgba(220,38,38,0.8)',
                 ],
                 'heatmap-radius': [
                     'interpolate', ['linear'], ['zoom'],
@@ -183,7 +272,6 @@ export function BridgeMap({
         m.on('mouseenter', 'bridges-circle', handleEnter);
         m.on('mouseleave', 'bridges-circle', handleLeave);
 
-        // Cleanup listeners on re-render
         return () => {
             m.off('click', 'bridges-circle', handleClick);
             m.off('mouseenter', 'bridges-circle', handleEnter);
@@ -194,12 +282,9 @@ export function BridgeMap({
     return (
         <div className={`bridge-map-container ${className}`}>
             {loading && (
-                <div className="bridge-map__scanner">
-                    <div className="bridge-map__scan-line" />
-                    <div className="bridge-map__scan-text">
-                        <span className="bridge-map__scan-icon">📡</span>
-                        <span>Scanne {geojson ? geojson.features.length.toLocaleString('de-DE') : '~40.000'} Brücken…</span>
-                    </div>
+                <div className="bridge-map__scan-text">
+                    <span className="bridge-map__scan-icon">📡</span>
+                    <span>Scanne ~40.000 Brücken…</span>
                 </div>
             )}
             <div ref={mapContainer} className="bridge-map" />
