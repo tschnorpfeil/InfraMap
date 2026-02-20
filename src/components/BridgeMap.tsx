@@ -25,9 +25,10 @@ export function BridgeMap({
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
     const layersAdded = useRef(false);
-    const { setSelectedBridge } = useDataContext();
+    const { selectedBridge, setSelectedBridge } = useDataContext();
     const { data: geojson, loading, progress } = useBridgesGeoJSON();
     const [mapReady, setMapReady] = useState(false);
+    const pulseAnimation = useRef<number | null>(null);
 
     // Initialize map
     useEffect(() => {
@@ -269,6 +270,53 @@ export function BridgeMap({
             },
         });
 
+        // ── Selected bridge highlight source + layers ──
+        m.addSource('selected-bridge', {
+            type: 'geojson',
+            data: EMPTY_GEOJSON,
+        });
+
+        // Pulse ring (animated via JS)
+        m.addLayer({
+            id: 'selected-bridge-pulse',
+            type: 'circle',
+            source: 'selected-bridge',
+            paint: {
+                'circle-radius': 20,
+                'circle-color': 'transparent',
+                'circle-stroke-color': '#ffffff',
+                'circle-stroke-width': 2,
+                'circle-stroke-opacity': 0.6,
+            },
+        });
+
+        // Glow ring (static, large, soft)
+        m.addLayer({
+            id: 'selected-bridge-glow',
+            type: 'circle',
+            source: 'selected-bridge',
+            paint: {
+                'circle-radius': 18,
+                'circle-color': 'rgba(255, 255, 255, 0.08)',
+                'circle-stroke-color': 'rgba(255, 255, 255, 0.3)',
+                'circle-stroke-width': 2,
+                'circle-blur': 0.4,
+            },
+        });
+
+        // Bright dot center
+        m.addLayer({
+            id: 'selected-bridge-dot',
+            type: 'circle',
+            source: 'selected-bridge',
+            paint: {
+                'circle-radius': 8,
+                'circle-color': '#ffffff',
+                'circle-stroke-color': '#000000',
+                'circle-stroke-width': 2,
+            },
+        });
+
         // Click selection
         function handleClick(e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) {
             const feature = e.features?.[0];
@@ -301,12 +349,98 @@ export function BridgeMap({
         m.on('mouseenter', 'bridges-circle', handleEnter);
         m.on('mouseleave', 'bridges-circle', handleLeave);
 
+        // Dismiss selection when clicking empty map area
+        function handleMapClick(e: maplibregl.MapMouseEvent) {
+            const features = m.queryRenderedFeatures(e.point, { layers: ['bridges-circle'] });
+            if (!features.length) {
+                setSelectedBridge(null);
+            }
+        }
+        m.on('click', handleMapClick);
+
         return () => {
             m.off('click', 'bridges-circle', handleClick);
             m.off('mouseenter', 'bridges-circle', handleEnter);
             m.off('mouseleave', 'bridges-circle', handleLeave);
+            m.off('click', handleMapClick);
         };
     }, [mapReady]);
+
+    // ── React to selectedBridge: update highlight source + flyTo ──
+    useEffect(() => {
+        const m = mapRef.current;
+        if (!m || !mapReady) return;
+
+        const source = m.getSource('selected-bridge');
+        if (!source || !('setData' in source)) return;
+        const geoSource = source as maplibregl.GeoJSONSource;
+
+        // Cancel any existing pulse animation
+        if (pulseAnimation.current) {
+            cancelAnimationFrame(pulseAnimation.current);
+            pulseAnimation.current = null;
+        }
+
+        if (!selectedBridge) {
+            geoSource.setData(EMPTY_GEOJSON);
+            return;
+        }
+
+        // Set the selected bridge feature
+        geoSource.setData({
+            type: 'FeatureCollection',
+            features: [{
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [selectedBridge.lng, selectedBridge.lat] },
+                properties: {},
+            }],
+        });
+
+        // Gentle flyTo — offset center upward so the bridge sits above the bottom sheet
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const currentZoom = m.getZoom();
+        const targetZoom = Math.max(currentZoom, 12); // zoom in if needed
+
+        m.flyTo({
+            center: [selectedBridge.lng, selectedBridge.lat],
+            zoom: targetZoom,
+            offset: [0, isTouch ? -80 : -40], // shift point upward away from bottom sheet
+            duration: 1200,
+            essential: true,
+        });
+
+        // Animate pulse ring
+        let start: number | null = null;
+        const PULSE_DURATION = 1800; // ms per cycle
+
+        function animatePulse(timestamp: number) {
+            const map = mapRef.current;
+            if (!map) return;
+            if (!start) start = timestamp;
+            const elapsed = (timestamp - start) % PULSE_DURATION;
+            const t = elapsed / PULSE_DURATION; // 0→1
+
+            // Expand radius from 12 → 35, fade opacity from 0.7 → 0
+            const radius = 12 + t * 28;
+            const opacity = 0.7 * (1 - t);
+
+            if (map.getLayer('selected-bridge-pulse')) {
+                map.setPaintProperty('selected-bridge-pulse', 'circle-radius', radius);
+                map.setPaintProperty('selected-bridge-pulse', 'circle-stroke-opacity', opacity);
+            }
+
+            pulseAnimation.current = requestAnimationFrame(animatePulse);
+        }
+
+        pulseAnimation.current = requestAnimationFrame(animatePulse);
+
+        return () => {
+            if (pulseAnimation.current) {
+                cancelAnimationFrame(pulseAnimation.current);
+                pulseAnimation.current = null;
+            }
+        };
+    }, [mapReady, selectedBridge]);
 
     // Hot-swap GeoJSON data progressively
     useEffect(() => {
