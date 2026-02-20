@@ -2,6 +2,8 @@ import { GradeLabel } from './GradeLabel';
 import { ShareButtons } from './ShareButtons';
 import type { LandkreisStats } from '../types';
 
+import { BridgeIcon } from './BridgeIcon';
+
 interface LandkreisCardProps {
     stats: LandkreisStats;
 }
@@ -16,7 +18,9 @@ export function LandkreisCard({ stats }: LandkreisCardProps) {
     return (
         <div className="landkreis-card">
             <div className="landkreis-card__header">
-                <div className="landkreis-card__icon">🌉</div>
+                <div className="landkreis-card__icon" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'currentColor' }}>
+                    <BridgeIcon width={28} height={28} />
+                </div>
                 <div className="landkreis-card__title-block">
                     <h2 className="landkreis-card__title">Brückenzeugnis</h2>
                     <h3 className="landkreis-card__name">{stats.landkreis}</h3>

@@ -1,12 +1,12 @@
 import type { GradeInfo } from '../types';
 
 const GRADE_RANGES: { max: number; info: GradeInfo }[] = [
-    { max: 1.5, info: { label: 'Sehr gut', color: '#22c55e', bgColor: '#052e16', emoji: '🟢' } },
-    { max: 2.0, info: { label: 'Gut', color: '#4ade80', bgColor: '#052e16', emoji: '🟢' } },
-    { max: 2.5, info: { label: 'Befriedigend', color: '#facc15', bgColor: '#422006', emoji: '🟡' } },
-    { max: 3.0, info: { label: 'Ausreichend', color: '#f97316', bgColor: '#431407', emoji: '🟠' } },
-    { max: 3.5, info: { label: 'Nicht ausreichend', color: '#ef4444', bgColor: '#450a0a', emoji: '🔴' } },
-    { max: 4.1, info: { label: 'Ungenügend', color: '#dc2626', bgColor: '#450a0a', emoji: '🔴' } },
+    { max: 1.5, info: { label: 'Sehr gut', color: '#22c55e', bgColor: '#052e16', iconName: 'circle-check' } },
+    { max: 2.0, info: { label: 'Gut', color: '#4ade80', bgColor: '#052e16', iconName: 'circle-check' } },
+    { max: 2.5, info: { label: 'Befriedigend', color: '#facc15', bgColor: '#422006', iconName: 'circle-alert' } },
+    { max: 3.0, info: { label: 'Ausreichend', color: '#f97316', bgColor: '#431407', iconName: 'circle-alert' } },
+    { max: 3.5, info: { label: 'Nicht ausreichend', color: '#ef4444', bgColor: '#450a0a', iconName: 'circle-x' } },
+    { max: 4.1, info: { label: 'Ungenügend', color: '#dc2626', bgColor: '#450a0a', iconName: 'circle-x' } },
 ];
 
 export function getGradeInfo(note: number): GradeInfo {

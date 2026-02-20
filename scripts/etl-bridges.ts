@@ -152,6 +152,11 @@ interface BridgeRow {
     lat: number;
     lng: number;
     stand: string | null;
+    closure: boolean;
+    area: number | null;
+    construction: string | null;
+    lastinspection: number | null;
+    history: Record<string, number> | null;
 }
 
 // Bundesland code → name mapping
@@ -193,6 +198,18 @@ function transformFeature(feature: BastFeature): BridgeRow | null {
         lat,
         lng,
         stand: String(props['updated'] ?? '').trim() || null,
+        closure: Boolean(props['closure']),
+        area: Number(props['area']) || null,
+        construction: String(props['construction'] ?? '').trim() || null,
+        lastinspection: Number(props['lastinspection']) || null,
+        history: Object.keys(props)
+            .filter(k => k.startsWith('zn9') || k.startsWith('zn3'))
+            .reduce((acc, key) => {
+                const year = key.replace('zn9', '').replace('zn3', '');
+                const val = Number(props[key]);
+                if (val > 0) acc[year] = val;
+                return acc;
+            }, {} as Record<string, number>),
     };
 }
 

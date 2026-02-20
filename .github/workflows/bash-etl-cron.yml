@@ -1,0 +1,30 @@
+name: Weekly BASt Data ETL
+
+on:
+  schedule:
+    # Jeden Montag um 03:00 UTC
+    - cron: '0 3 * * 1'
+  workflow_dispatch: # Erlaubt manuelles Auslösen über die GitHub UI
+
+jobs:
+  run-etl:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run ETL Script
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: npx tsx scripts/etl-bridges.ts

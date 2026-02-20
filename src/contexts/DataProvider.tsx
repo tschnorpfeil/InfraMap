@@ -16,6 +16,11 @@ interface MinimalBridge {
     strasse: string;
     landkreis: string;
     bundesland: string;
+    closure: boolean;
+    area: number | null;
+    construction: string | null;
+    lastinspection: number | null;
+    history: Record<string, number> | null;
 }
 
 interface GlobalStats {
@@ -70,6 +75,11 @@ function bridgesToFeatures(bridges: MinimalBridge[]): GeoJSON.Feature[] {
                 strasse: b.strasse,
                 landkreis: b.landkreis,
                 bundesland: b.bundesland,
+                closure: b.closure,
+                area: b.area,
+                construction: b.construction,
+                lastinspection: b.lastinspection,
+                history: b.history,
             },
         }));
 }
@@ -130,7 +140,7 @@ function mergeLandkreisStats(allStats: Record<string, unknown>[]): LandkreisStat
 
 const PAGE_SIZE = 1000;
 const ESTIMATED_TOTAL = 40000;
-const BRIDGE_SELECT = 'bauwerksnummer, name, lat, lng, zustandsnote, baujahr, strasse, landkreis, bundesland';
+const BRIDGE_SELECT = 'bauwerksnummer, name, lat, lng, zustandsnote, baujahr, strasse, landkreis, bundesland, closure, area, construction, lastinspection, history';
 
 export function DataProvider({ children }: { children: ReactNode }) {
     // Bridge GeoJSON (progressive)

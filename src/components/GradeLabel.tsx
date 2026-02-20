@@ -1,4 +1,5 @@
 import { getGradeInfo } from '../utils/grading';
+import { CircleCheckIcon, CircleAlertIcon, CircleXIcon } from './Icons';
 
 interface GradeLabelProps {
     note: number;
@@ -16,6 +17,15 @@ export function GradeLabel({ note, size = 'md', showLabel = true }: GradeLabelPr
         xl: 'grade-label--xl',
     };
 
+    const renderIcon = () => {
+        const props = { className: "grade-label__icon" };
+        switch (info.iconName) {
+            case 'circle-check': return <CircleCheckIcon {...props} />;
+            case 'circle-alert': return <CircleAlertIcon {...props} />;
+            case 'circle-x': return <CircleXIcon {...props} />;
+        }
+    };
+
     return (
         <span
             className={`grade-label ${sizeClasses[size] ?? ''}`}
@@ -25,6 +35,7 @@ export function GradeLabel({ note, size = 'md', showLabel = true }: GradeLabelPr
                 borderColor: info.color,
             }}
         >
+            {size !== 'sm' && <span className="grade-label__icon-wrapper">{renderIcon()}</span>}
             <span className="grade-label__note">{note.toFixed(1)}</span>
             {showLabel && <span className="grade-label__text">{info.label}</span>}
         </span>

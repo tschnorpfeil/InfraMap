@@ -13,6 +13,11 @@ export interface Bridge {
     baustoffklasse: string;
     traglastindex: number | null;
     stand: string;
+    closure: boolean;
+    area: number | null;
+    construction: string | null;
+    lastinspection: number | null;
+    history: Record<string, number> | null;
 }
 
 export interface LandkreisStats {
@@ -32,5 +37,5 @@ export interface GradeInfo {
     label: string;
     color: string;
     bgColor: string;
-    emoji: string;
+    iconName: 'circle-check' | 'circle-alert' | 'circle-x';
 }

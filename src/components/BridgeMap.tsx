@@ -44,13 +44,24 @@ export function BridgeMap({
             attributionControl: {},
         });
 
+        // Measure actual UI chrome to compute map padding dynamically
+        function getMapPadding(): maplibregl.PaddingOptions | number {
+            const isMobile = window.innerWidth <= 768;
+            if (!isMobile) return 20;
+            const header = document.querySelector('.app-header');
+            const kpiStrip = document.querySelector('.hero-overlay');
+            const topPad = header ? header.getBoundingClientRect().height + 8 : 60;
+            const bottomPad = kpiStrip ? kpiStrip.getBoundingClientRect().height + 8 : 200;
+            return { top: topPad, bottom: bottomPad, left: 10, right: 10 };
+        }
+
         // Fit to Germany bounds — auto-calculates zoom for any screen size
-        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         map.fitBounds(GERMANY_BOUNDS, {
-            padding: isTouch ? 0 : 20,
+            padding: getMapPadding(),
             animate: false,
         });
         // Only show +/- nav buttons on desktop
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
         if (!isTouch) {
             map.addControl(new maplibregl.NavigationControl(), 'top-right');
         }
@@ -96,9 +107,17 @@ export function BridgeMap({
 
         const handleMapReset = () => {
             if (mapRef.current) {
-                const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+                const isMobile = window.innerWidth <= 768;
+                let padding: maplibregl.PaddingOptions | number = 20;
+                if (isMobile) {
+                    const header = document.querySelector('.app-header');
+                    const kpiStrip = document.querySelector('.hero-overlay');
+                    const topPad = header ? header.getBoundingClientRect().height + 8 : 60;
+                    const bottomPad = kpiStrip ? kpiStrip.getBoundingClientRect().height + 8 : 200;
+                    padding = { top: topPad, bottom: bottomPad, left: 10, right: 10 };
+                }
                 mapRef.current.fitBounds(GERMANY_BOUNDS, {
-                    padding: isTouch ? 0 : 20,
+                    padding,
                     duration: 1500,
                 });
             }
@@ -253,15 +272,37 @@ export function BridgeMap({
                     7, 2, 10, 5, 14, 10,
                 ],
                 'circle-color': [
-                    'interpolate', ['linear'],
-                    ['get', 'zustandsnote'],
-                    1.0, '#22c55e', 1.5, '#4ade80', 2.0, '#eab308',
-                    2.5, '#f97316', 3.0, '#ef4444', 3.5, '#dc2626', 4.0, '#991b1b',
+                    'case',
+                    ['==', ['get', 'closure'], true], '#000000',
+                    [
+                        'interpolate', ['linear'],
+                        ['get', 'zustandsnote'],
+                        1.0, '#22c55e', 1.5, '#4ade80', 2.0, '#eab308',
+                        2.5, '#f97316', 3.0, '#ef4444', 3.5, '#dc2626', 4.0, '#991b1b',
+                    ]
                 ],
-                'circle-stroke-color': '#000',
+                'circle-stroke-color': [
+                    'case',
+                    ['==', ['get', 'closure'], true], '#ff2d2d',
+                    '#000'
+                ],
                 'circle-stroke-width': [
                     'interpolate', ['linear'], ['zoom'],
-                    7, 0, 10, 0.8, 14, 1,
+                    7, [
+                        'case',
+                        ['==', ['get', 'closure'], true], 2,
+                        0
+                    ],
+                    10, [
+                        'case',
+                        ['==', ['get', 'closure'], true], 2,
+                        0.8
+                    ],
+                    14, [
+                        'case',
+                        ['==', ['get', 'closure'], true], 2,
+                        1
+                    ]
                 ],
                 'circle-opacity': [
                     'interpolate', ['linear'], ['zoom'],
@@ -339,6 +380,11 @@ export function BridgeMap({
                 strasse: props?.strasse ?? '',
                 landkreis: props?.landkreis ?? '',
                 bundesland: props?.bundesland ?? '',
+                closure: props?.closure ?? false,
+                area: props?.area ?? null,
+                construction: props?.construction ?? null,
+                lastinspection: props?.lastinspection ?? null,
+                history: typeof props?.history === 'string' ? JSON.parse(props.history) : (props?.history ?? null),
             });
         }
 
@@ -397,14 +443,27 @@ export function BridgeMap({
         });
 
         // Gentle flyTo — offset center upward so the bridge sits above the bottom sheet
-        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        const isMobile = window.innerWidth <= 768;
         const currentZoom = m.getZoom();
-        const targetZoom = Math.max(currentZoom, 12); // zoom in if needed
+        const targetZoom = Math.max(currentZoom, 13); // zoom in a bit more for details
+
+        // Calculate dynamic offset based on the details overlay height
+        let yOffset = -40; // Default desktop offset
+        if (isMobile) {
+            const overlay = document.querySelector('.bridge-details-overlay');
+            if (overlay) {
+                const overlayHeight = overlay.getBoundingClientRect().height;
+                // Shift up by half the overlay height so it centers in the remaining visible space
+                yOffset = -(overlayHeight / 2) - 20;
+            } else {
+                yOffset = -150; // Fallback if overlay isn't rendered yet
+            }
+        }
 
         m.flyTo({
             center: [selectedBridge.lng, selectedBridge.lat],
             zoom: targetZoom,
-            offset: [0, isTouch ? -80 : -40], // shift point upward away from bottom sheet
+            offset: [0, yOffset], // shift point upward away from bottom sheet
             duration: 1200,
             essential: true,
         });
@@ -453,15 +512,6 @@ export function BridgeMap({
 
     return (
         <div className={`bridge-map-container ${className}`}>
-            {loading && progress.loaded > 0 && (
-                <div className="bridge-map__scan-text">
-                    {progress.loaded < 5000
-                        ? `🔴 ${progress.loaded.toLocaleString('de-DE')} kritische Brücken geladen…`
-                        : progress.loaded < 20000
-                            ? `🟡 ${progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…`
-                            : `🟢 ${progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…`}
-                </div>
-            )}
             <div ref={mapContainer} className="bridge-map" />
         </div>
     );
