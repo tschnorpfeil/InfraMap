@@ -2,10 +2,12 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { StatCounter } from './StatCounter';
 import { useGlobalStats, useLandkreise } from '../hooks/useData';
+import { useDataContext } from '../contexts/DataProvider';
 
 export function HeroDashboard() {
     const stats = useGlobalStats();
     const { data: landkreise } = useLandkreise();
+    const { selectedBridge } = useDataContext();
     const [search, setSearch] = useState('');
     const [showDropdown, setShowDropdown] = useState(false);
     const [selectedIdx, setSelectedIdx] = useState(-1);
@@ -80,7 +82,7 @@ export function HeroDashboard() {
     }
 
     return (
-        <div className="hero-overlay">
+        <div className={`hero-overlay${selectedBridge ? ' hero-overlay--hidden' : ''}`}>
             <div className="hero-overlay__card">
                 {/* ── Header ── */}
                 <div className="hero-overlay__header">

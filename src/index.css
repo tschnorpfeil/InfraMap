@@ -191,7 +191,7 @@ a:hover {
 /* ── UI Details Overlay (Bottom Sheet / Sidebar panel) ── */
 .bridge-details-overlay {
   position: absolute;
-  z-index: 40;
+  z-index: 55;
   pointer-events: none;
   /* Let clicks pass through overlay container */
   bottom: 24px;
@@ -432,6 +432,13 @@ a:hover {
   left: 16px;
   z-index: 20;
   pointer-events: none;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+
+.hero-overlay--hidden {
+  transform: translateY(120%);
+  opacity: 0;
+  pointer-events: none !important;
 }
 
 .hero-overlay__card {
