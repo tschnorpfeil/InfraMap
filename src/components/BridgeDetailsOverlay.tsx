@@ -1,5 +1,6 @@
 import { useDataContext } from '../contexts/DataProvider';
 import { GradeLabel } from './GradeLabel';
+import { XIcon } from './Icons';
 export function BridgeDetailsOverlay() {
     const { selectedBridge, setSelectedBridge } = useDataContext();
 
@@ -13,7 +14,7 @@ export function BridgeDetailsOverlay() {
                     onClick={() => setSelectedBridge(null)}
                     aria-label="Schließen"
                 >
-                    ×
+                    <XIcon style={{ width: 18, height: 18 }} />
                 </button>
                 <div className="bridge-details-header">
                     <div>

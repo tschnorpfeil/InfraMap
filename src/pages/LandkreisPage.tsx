@@ -5,6 +5,7 @@ import { GradeLabel } from '../components/GradeLabel';
 import { BridgeMap } from '../components/BridgeMap';
 import { useLandkreise, useBridges } from '../hooks/useData';
 import { slugify } from '../utils/grading';
+import { XIcon } from '../components/Icons';
 
 export function LandkreisPage() {
     const { slug } = useParams<{ slug: string }>();
@@ -74,7 +75,7 @@ export function LandkreisPage() {
                 onClick={() => navigate('/')}
                 aria-label="Schließen"
             >
-                ×
+                <XIcon style={{ width: 18, height: 18 }} />
             </button>
 
             <div className="landkreis-page__content">

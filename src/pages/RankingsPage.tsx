@@ -13,7 +13,7 @@ export function RankingsPage() {
             <div className="rankings-page__header">
                 <Link to="/" className="back-link">← Zurück zur Karte</Link>
                 <h1 className="rankings-page__title">
-                    <BarChartIcon className="w-8 h-8 mr-3 inline-block align-text-bottom" /> Ranking
+                    <BarChartIcon style={{ width: 32, height: 32, marginRight: 12, display: 'inline-block', verticalAlign: 'text-bottom' }} /> Ranking
                 </h1>
                 <p className="rankings-page__subtitle">
                     Ranking aller Landkreise nach Brückenzustand — sortierbar, filterbar

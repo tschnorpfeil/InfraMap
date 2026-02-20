@@ -22,7 +22,6 @@
   --grade-green: #22c55e;
   --grade-yellow: #eab308;
   --grade-orange: #f97316;
-  --grade-red: #ef4444;
   --grade-dark-red: #dc2626;
 
   --accent-blue: #3b82f6;
@@ -126,7 +125,7 @@ a:hover {
   text-decoration: none;
   padding: 4px 8px;
   border-radius: var(--radius-sm);
-  transition: all 0.2s;
+  transition: color 0.2s, background-color 0.2s;
 }
 
 .app-header__link:hover {
@@ -244,7 +243,7 @@ a:hover {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, color 0.2s;
   z-index: 50;
 }
 
@@ -511,6 +510,26 @@ a:hover {
     font-size: 0.75rem;
     padding: 6px 12px;
   }
+}
+
+/* ── Progress Dots ── */
+.progress-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.progress-dot--red {
+  background-color: var(--alarm-red);
+}
+
+.progress-dot--yellow {
+  background-color: var(--grade-yellow);
+}
+
+.progress-dot--green {
+  background-color: var(--grade-green);
 }
 
 /* Offset MapLibre controls to not overlap with the app header */
@@ -782,7 +801,7 @@ a:hover {
   color: var(--text-primary);
   font-size: 0.8rem;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: background-color 0.15s, border-left-color 0.15s;
   text-align: left;
   font-family: var(--font-sans);
 }
@@ -1065,7 +1084,7 @@ a:hover {
   font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background-color 0.2s, border-color 0.2s;
   text-decoration: none;
 }
 
@@ -1140,6 +1159,23 @@ a:hover {
   .rankings__table tbody td {
     border: none;
     padding: 4px 8px;
+    position: relative;
+  }
+
+  /* Show data-label as inline label on mobile */
+  .rankings__table tbody td[data-label]::before {
+    content: attr(data-label) ': ';
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-right: 4px;
+  }
+
+  /* Hide label for rank and name columns — already obvious */
+  .rankings__table tbody td:nth-child(1)::before,
+  .rankings__table tbody td:nth-child(2)::before {
+    display: none;
   }
 
   /* Rank & Name full width */
@@ -1213,7 +1249,7 @@ a:hover {
 
 .rankings__row {
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background-color 0.15s;
 }
 
 .rankings__row:hover {
@@ -1404,13 +1440,13 @@ a:hover {
   }
 
   .hero-kpi__label {
-    font-size: 0.55rem;
+    font-size: 0.65rem;
     letter-spacing: 0.02em;
   }
 
   .hero-kpi__note-hint {
     display: block;
-    font-size: 0.48rem;
+    font-size: 0.58rem;
     margin-top: 1px;
   }
 
@@ -1498,5 +1534,21 @@ a:hover {
   .grade-label--xl {
     font-size: 1.8rem;
     padding: 12px 24px;
+  }
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

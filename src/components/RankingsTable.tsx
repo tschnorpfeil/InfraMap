@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GradeLabel } from './GradeLabel';
+import { ChevronUpIcon, ChevronDownIcon } from './Icons';
 import { useLandkreise } from '../hooks/useData';
 import { slugify } from '../utils/grading';
 
@@ -40,8 +41,10 @@ export function RankingsTable() {
     }
 
     function sortIndicator(key: SortKey) {
-        if (sortBy !== key) return '';
-        return sortDesc ? ' ↓' : ' ↑';
+        if (sortBy !== key) return null;
+        return sortDesc
+            ? <ChevronDownIcon style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: 'middle', marginLeft: 2 }} />
+            : <ChevronUpIcon style={{ width: 14, height: 14, display: 'inline-block', verticalAlign: 'middle', marginLeft: 2 }} />;
     }
 
     return (
@@ -105,17 +108,17 @@ export function RankingsTable() {
                                 className="rankings__row"
                                 onClick={() => navigate(`/landkreis/${slugify(lk.landkreis)}`)}
                             >
-                                <td className="rankings__rank">{i + 1}</td>
-                                <td className="rankings__name">{lk.landkreis}</td>
-                                <td className="rankings__bl">{lk.bundesland}</td>
-                                <td>
+                                <td className="rankings__rank" data-label="#">{i + 1}</td>
+                                <td className="rankings__name" data-label="Landkreis">{lk.landkreis}</td>
+                                <td className="rankings__bl" data-label="Bundesland">{lk.bundesland || '—'}</td>
+                                <td data-label="Note">
                                     <GradeLabel note={lk.avg_note} size="sm" showLabel={false} />
                                 </td>
-                                <td>{lk.total_bruecken}</td>
-                                <td className={lk.kritisch_prozent > 20 ? 'text-alarm' : ''}>
+                                <td data-label="Brücken">{lk.total_bruecken}</td>
+                                <td data-label="Kritisch" className={lk.kritisch_prozent > 20 ? 'text-alarm' : ''}>
                                     {lk.kritisch_prozent}%
                                 </td>
-                                <td>{Math.round(lk.avg_baujahr)}</td>
+                                <td data-label="∅ Baujahr">{Math.round(lk.avg_baujahr)}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -17,18 +17,18 @@ function AppHeader() {
   return (
     <header className="app-header">
       <Link to="/" className="app-header__logo">
-        <BridgeIcon className="w-6 h-6 mr-1" /> <span>Brückenzeugnis</span>
+        <BridgeIcon style={{ width: 24, height: 24, marginRight: 4 }} /> <span>Brückenzeugnis</span>
       </Link>
       <nav className="app-header__nav">
         <Link
           to="/rankings"
           className={`app-header__link ${location.pathname === '/rankings' ? 'app-header__link--active' : ''}`}
         >
-          <BarChartIcon className="w-4 h-4 mr-1.5" /> Ranking
+          <BarChartIcon style={{ width: 16, height: 16, marginRight: 6 }} /> Ranking
         </Link>
         {!isHome && (
           <Link to="/" className="app-header__link">
-            <MapIcon className="w-4 h-4 mr-1.5" /> Karte
+            <MapIcon style={{ width: 16, height: 16, marginRight: 6 }} /> Karte
           </Link>
         )}
       </nav>
@@ -45,11 +45,11 @@ function BridgeLoadProgress() {
   return (
     <div className="bridge-map__scan-text" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
       {progress.loaded < 5000 ? (
-        <><div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#ef4444' }} /> {progress.loaded.toLocaleString('de-DE')} kritische Brücken geladen…</>
+        <><div className="progress-dot progress-dot--red" /> {progress.loaded.toLocaleString('de-DE')} kritische Brücken geladen…</>
       ) : progress.loaded < 20000 ? (
-        <><div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#eab308' }} /> {progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…</>
+        <><div className="progress-dot progress-dot--yellow" /> {progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…</>
       ) : (
-        <><div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: '#22c55e' }} /> {progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…</>
+        <><div className="progress-dot progress-dot--green" /> {progress.loaded.toLocaleString('de-DE')} / ~40.000 Brücken…</>
       )}
     </div>
   );
@@ -70,13 +70,13 @@ function App() {
             <AppHeader />
             <BridgeLoadProgress />
             <BridgeDetailsOverlay />
-            <div className="app-layout__content">
+            <main className="app-layout__content">
               <Routes>
                 <Route path="/" element={<HomePage />} />
                 <Route path="/landkreis/:slug" element={<LandkreisPage />} />
                 <Route path="/rankings" element={<RankingsPage />} />
               </Routes>
-            </div>
+            </main>
           </div>
         </div>
       </DataProvider>

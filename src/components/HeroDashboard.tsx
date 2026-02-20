@@ -141,6 +141,7 @@ export function HeroDashboard() {
                             placeholder="Landkreis suchen…"
                             className="hero-overlay__input"
                             autoComplete="off"
+                            aria-label="Landkreis suchen"
                         />
                     </div>
 
