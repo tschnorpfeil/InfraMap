@@ -43,6 +43,10 @@ interface DataContextValue {
 
     // Global stats — cached after first load
     globalStats: GlobalStats | null;
+
+    // Bridge selection (for overlay)
+    selectedBridge: MinimalBridge | null;
+    setSelectedBridge: (bridge: MinimalBridge | null) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -141,6 +145,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
     // Global stats (cached)
     const [globalStats, setGlobalStats] = useState<GlobalStats | null>(null);
+
+    // Selected bridge (for overlay)
+    const [selectedBridge, setSelectedBridge] = useState<MinimalBridge | null>(null);
 
     // ── Progressive bridge loading (worst grades first) ──
     useEffect(() => {
@@ -266,6 +273,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
         landkreise,
         landkreiseLoading,
         globalStats,
+        selectedBridge,
+        setSelectedBridge,
     };
 
     return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

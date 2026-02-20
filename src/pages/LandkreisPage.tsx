@@ -1,4 +1,4 @@
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
 import { LandkreisCard } from '../components/LandkreisCard';
 import { GradeLabel } from '../components/GradeLabel';
@@ -8,6 +8,7 @@ import { slugify } from '../utils/grading';
 
 export function LandkreisPage() {
     const { slug } = useParams<{ slug: string }>();
+    const navigate = useNavigate();
     const { data: landkreise, loading: lkLoading } = useLandkreise();
 
     const match = landkreise?.find((lk) => slugify(lk.landkreis) === slug) ?? null;
@@ -68,10 +69,13 @@ export function LandkreisPage() {
 
     return (
         <div className="page page--landkreis page--overlay overlay-sidebar">
-            <div className="landkreis-page__nav">
-                <Link to="/" className="back-link">← Karte</Link>
-                <Link to="/rankings" className="back-link">🏆 Rankings</Link>
-            </div>
+            <button
+                className="overlay-close-btn"
+                onClick={() => navigate('/')}
+                aria-label="Schließen"
+            >
+                ×
+            </button>
 
             <div className="landkreis-page__content">
                 <div className="landkreis-page__card">

@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import { useBridgesGeoJSON } from '../hooks/useData';
+import { useDataContext } from '../contexts/DataProvider';
 import { MAP_STYLE, GERMANY_CENTER, GERMANY_ZOOM, GERMANY_BOUNDS } from '../utils/constants';
 import { getMapColor } from '../utils/grading';
 
@@ -23,8 +24,8 @@ export function BridgeMap({
 }: BridgeMapProps) {
     const mapContainer = useRef<HTMLDivElement>(null);
     const mapRef = useRef<maplibregl.Map | null>(null);
-    const popupRef = useRef<maplibregl.Popup | null>(null);
     const layersAdded = useRef(false);
+    const { setSelectedBridge } = useDataContext();
     const { data: geojson, loading, progress } = useBridgesGeoJSON();
     const [mapReady, setMapReady] = useState(false);
 
@@ -268,34 +269,29 @@ export function BridgeMap({
             },
         });
 
-        // Click popup
+        // Click selection
         function handleClick(e: maplibregl.MapMouseEvent & { features?: maplibregl.MapGeoJSONFeature[] }) {
             const feature = e.features?.[0];
-            if (!feature || feature.geometry.type !== 'Point') return;
+            if (!feature || feature.geometry.type !== 'Point') {
+                setSelectedBridge(null);
+                return;
+            }
 
-            const coords = feature.geometry.coordinates.slice() as [number, number];
-            const props = feature.properties;
-            const note = props?.zustandsnote ?? 0;
-            const noteColor = getMapColor(note);
+            const props = feature.properties as any;
+            const lat = feature.geometry.coordinates[1] ?? 0;
+            const lng = feature.geometry.coordinates[0] ?? 0;
 
-            if (popupRef.current) popupRef.current.remove();
-
-            popupRef.current = new maplibregl.Popup({ maxWidth: '320px' })
-                .setLngLat(coords)
-                .setHTML(`
-          <div class="bridge-popup">
-            <h3 class="bridge-popup__name">${props?.name ?? 'Unbekannt'}</h3>
-            <div class="bridge-popup__note" style="color: ${noteColor}">
-              Note: ${Number(note).toFixed(1)}
-            </div>
-            <div class="bridge-popup__details">
-              <span>Baujahr: ${props?.baujahr ?? '?'}</span>
-              <span>Straße: ${props?.strasse ?? '?'}</span>
-              <span>Landkreis: ${props?.landkreis ?? '?'}</span>
-            </div>
-          </div>
-        `)
-                .addTo(m);
+            setSelectedBridge({
+                bauwerksnummer: props?.id ?? '',
+                name: props?.name ?? '',
+                lat,
+                lng,
+                zustandsnote: props?.zustandsnote ?? 0,
+                baujahr: props?.baujahr ?? 0,
+                strasse: props?.strasse ?? '',
+                landkreis: props?.landkreis ?? '',
+                bundesland: props?.bundesland ?? '',
+            });
         }
 
         function handleEnter() { m.getCanvas().style.cursor = 'pointer'; }

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+
 interface ShareButtonsProps {
     title: string;
     text: string;
@@ -5,12 +7,14 @@ interface ShareButtonsProps {
 }
 
 export function ShareButtons({ title, text, url }: ShareButtonsProps) {
+    const [copied, setCopied] = useState(false);
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(`${text} ${url}`)}`;
 
     function copyLink() {
         void navigator.clipboard.writeText(url).then(() => {
-            alert('Link kopiert!');
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
         });
     }
 
@@ -36,10 +40,11 @@ export function ShareButtons({ title, text, url }: ShareButtonsProps) {
             </a>
             <button
                 onClick={copyLink}
-                className="share-btn share-btn--copy"
+                className={`share-btn share-btn--copy ${copied ? 'share-btn--copied' : ''}`}
                 title="Link kopieren"
+                disabled={copied}
             >
-                🔗 Link kopieren
+                {copied ? '✓ Kopiert!' : '🔗 Link kopieren'}
             </button>
         </div>
     );

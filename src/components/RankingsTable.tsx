@@ -57,6 +57,23 @@ export function RankingsTable() {
                         <option key={bl} value={bl}>{bl}</option>
                     ))}
                 </select>
+
+                <select
+                    value={`${sortBy}-${sortDesc ? 'desc' : 'asc'}`}
+                    onChange={(e) => {
+                        const [key, order] = e.target.value.split('-');
+                        setSortBy(key as SortKey);
+                        setSortDesc(order === 'desc');
+                    }}
+                    className="rankings__select rankings__sort-mobile"
+                >
+                    <option value="avg_note-desc">Nach Note (Schlechteste zuerst)</option>
+                    <option value="avg_note-asc">Nach Note (Beste zuerst)</option>
+                    <option value="total_bruecken-desc">Brücken (Meiste zuerst)</option>
+                    <option value="kritisch_prozent-desc">Kritische % (Höchste zuerst)</option>
+                    <option value="avg_baujahr-asc">Baujahr (Älteste zuerst)</option>
+                </select>
+
                 <span className="rankings__count">{sorted.length} Landkreise</span>
             </div>
 

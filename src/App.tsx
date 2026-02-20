@@ -31,6 +31,7 @@ function AppHeader() {
 }
 
 import { BridgeMap } from './components/BridgeMap';
+import { BridgeDetailsOverlay } from './components/BridgeDetailsOverlay';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
           {/* Foreground UI Layer */}
           <div className="app-layout__ui">
             <AppHeader />
+            <BridgeDetailsOverlay />
             <div className="app-layout__content">
               <Routes>
                 <Route path="/" element={<HomePage />} />
